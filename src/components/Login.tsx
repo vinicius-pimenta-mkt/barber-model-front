@@ -65,14 +65,13 @@ const Login = ({ onLogin }: { onLogin: (user: LoginResponse['user']) => void }) 
       <Card className="w-full max-w-[400px] shadow-xl border-none overflow-hidden">
         <CardHeader className="text-center space-y-4 pt-8 pb-4">
           <div className="flex justify-center mb-2">
-            <div className="p-3 bg-white rounded-2xl shadow-sm border border-amber-100">
-              <img src={logo} alt="Beleza Masculina" className="h-16 sm:h-20 w-auto object-contain" />
-            </div>
+            {/* A borda e o fundo branco foram removidos. O tamanho aumentou de h-16 para h-32/h-40 */}
+            <img src={logo} alt="Miguel Alves" className="h-32 sm:h-40 w-auto object-contain drop-shadow-md" />
           </div>
           <div className="space-y-1">
             <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center justify-center gap-2 tracking-tight">
               <Scissors className="h-5 w-5 text-amber-600" />
-              Beleza Masculina
+              Miguel Alves
             </CardTitle>
             <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">Painel Administrativo</p>
           </div>

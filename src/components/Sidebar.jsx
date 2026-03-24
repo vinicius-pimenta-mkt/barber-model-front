@@ -16,8 +16,8 @@ import logo from '../assets/logo.png';
 const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Verifica se quem está logado é o Yuri
-  const isYuri = user?.role === 'yuri';
+  // Verifica se quem está logado é o Jhonatas
+  const isJhonatas = user?.role === 'jhonatas';
   
   // LISTA DE MENUS: Estoque e Relatórios liberados. Planos restrito ao Admin.
   const menuItems = [
@@ -59,10 +59,10 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
         {/* Header */}
         <div className="p-6 border-b">
           <div className="flex items-center space-x-3">
-            <img src={logo} alt="Beleza Masculina" className="h-10 w-auto" />
+            <img src={logo} alt="Miguel Alvez" className="h-10 w-auto" />
             <div>
-              <h2 className="font-bold text-gray-900 leading-tight">Beleza</h2>
-              <p className="text-sm text-amber-600 font-bold leading-tight">Masculina</p>
+              <h2 className="font-bold text-gray-900 leading-tight">Miguel Alves</h2>
+              <p className="text-sm text-amber-600 font-bold leading-tight">Barbershop</p>
             </div>
           </div>
         </div>
@@ -105,15 +105,15 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
               <span className="text-amber-600 font-semibold text-sm">
-                {isYuri ? 'Y' : 'BM'}
+                {isJhonatas ? 'J' : 'BM'}
               </span>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">
-                {isYuri ? 'Yuri Mendes' : 'Beleza Masculina'}
+                {isJhonatas ? 'Jhonatas' : 'Miguel Alves'}
               </p>
               <p className="text-xs text-gray-600">
-                {isYuri ? 'Barbeiro' : 'Administrador'}
+                {isJhonatas ? 'Barbeiro' : 'Administrador'}
               </p>
             </div>
           </div>

@@ -26,7 +26,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
     { id: 'clientes', label: 'Clientes', icon: Users },
     { id: 'produtos', label: 'Estoque', icon: Package }, // <-- NOVO BOTÃO DE ESTOQUE AQUI
     { id: 'relatorios', label: 'Relatórios', icon: FileText },
-    ...(!isYuri ? [
+    ...(!isJhonatas ? [
       { id: 'planos', label: 'Planos', icon: UserCheck }
     ] : []),
   ];

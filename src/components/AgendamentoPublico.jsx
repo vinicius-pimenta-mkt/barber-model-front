@@ -149,11 +149,11 @@ const AgendamentoPublico = () => {
             <div className="space-y-3">
               <Label className="text-gray-500 font-bold flex items-center gap-2"><User className="h-4 w-4 text-amber-600"/> 1. Escolha o Profissional</Label>
               <div className="grid grid-cols-2 gap-3">
-                <Button type="button" variant={formData.barbeiro === 'Miguel' ? 'default' : 'outline'} className={formData.barbeiro === 'Miguel' ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold' : 'font-bold text-gray-600'} onClick={() => setFormData({...formData, barbeiro: 'Lucas'})}>
-                  Lucas
+                <Button type="button" variant={formData.barbeiro === 'Miguel' ? 'default' : 'outline'} className={formData.barbeiro === 'Miguel' ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold' : 'font-bold text-gray-600'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
+                  Miguel
                 </Button>
-                <Button type="button" variant={formData.barbeiro === 'Jhonatas' ? 'default' : 'outline'} className={formData.barbeiro === 'Jhonatas' ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold' : 'font-bold text-gray-600'} onClick={() => setFormData({...formData, barbeiro: 'Yuri'})}>
-                  Yuri
+                <Button type="button" variant={formData.barbeiro === 'Jhonatas' ? 'default' : 'outline'} className={formData.barbeiro === 'Jhonatas' ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold' : 'font-bold text-gray-600'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
+                  Jhonatas
                 </Button>
               </div>
             </div>

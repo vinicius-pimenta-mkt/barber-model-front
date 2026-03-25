@@ -45,9 +45,9 @@ import { ptBR } from 'date-fns/locale';
 const Agenda = ({ user }) => {
   const isJhonatas = user?.role === 'jhonatas';
   const [agendamentos, setAgendamentos] = useState([]);
-  const [clientes, setClientes] = useState([]); // Guarda todos os clientes do banco
-  const [filteredClientes, setFilteredClientes] = useState([]); // Guarda clientes filtrados pela busca
-  const [showSuggestions, setShowSuggestions] = useState(false); // Controla se a listinha aparece
+  const [clientes, setClientes] = useState([]); 
+  const [filteredClientes, setFilteredClientes] = useState([]); 
+  const [showSuggestions, setShowSuggestions] = useState(false); 
   
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,28 +78,33 @@ const Agenda = ({ user }) => {
     intervalo: '30'
   });
 
+  // TABELA OFICIAL DE SERVIÇOS DO MIGUEL
   const tabelaPrecos = {
-    'Sobrancelha': 15,
-    'Selagem': 65,
-    'Relaxamento': 45,
-    'Pigmentação': 30,
-    'Acabamento (Pezinho)': 25,
+    'Barba': 30,
+    'Barba + Pézinho': 40,
+    'Barba + Pigmentação': 50,
+    'Barba Express': 20,
+    'Bigode': 10,
+    'Camuflagem (Fios brancos)': 35,
+    'Cone Hindu': 25,
+    'Corte': 40,
+    'Corte + Pigmentação': 60,
+    'Corte 1 pente + barba': 50,
+    'Corte e Barba': 60,
+    'Corte Infantil': 45,
+    'Corte Máquina 1 pente': 25,
+    'Hidratação Capilar': 25,
+    'Limpeza Nasal': 25,
     'Luzes': 100,
-    'Limpeza de pele': 40,
-    'Hidratação': 40,
-    'Finalização penteado': 25,
-    'Corte + Sobrancelha': 60,
-    'Corte Masculino': 45,
-    'Raspar na maquina': 35,
-    'Corte infantil no carrinho': 50,
-    'Corte infantil': 50,
-    'Corte + Barba simples': 80,
-    'Combo Corte + Barboterapia': 90,
-    'Combo Corte + Barba + Sobrancelha': 90,
-    'Coloração': 35,
-    'Barboterapia': 50,
-    'Barba Simples': 40,
-    'Tratamento V.O': 90
+    'Luzes e Corte': 140,
+    'Navalhado': 30,
+    'Navalhado + Barba': 50,
+    'Pezinho': 10,
+    'Pigmentação': 25,
+    'Platinado': 100,
+    'Platinado e Corte': 140,
+    'Sobrancelha': 10,
+    'Sobrancelha na fita': 25
   };
 
   const servicos = Object.keys(tabelaPrecos);
@@ -107,16 +112,14 @@ const Agenda = ({ user }) => {
 
   useEffect(() => {
     fetchAgendamentos();
-    fetchClientes(); // Puxa a lista de clientes ao abrir a tela
+    fetchClientes(); 
   }, []);
 
-  // --- Função para buscar a lista de clientes no banco ---
   const fetchClientes = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // CORREÇÃO: Buscando na tabela oficial de clientes em vez de assinantes
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/clientes`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -155,13 +158,11 @@ const Agenda = ({ user }) => {
     }
   };
 
-  // --- Super Buscador de Clientes ---
   const handleNameChange = (e) => {
     const value = e.target.value;
     setFormData({ ...formData, cliente_nome: value });
     
     if (value.length > 0) {
-      // Função mágica que arranca acentos e espaços (ex: "João " vira "joao")
       const limparTexto = (str) => {
         return str 
           ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() 
@@ -170,12 +171,10 @@ const Agenda = ({ user }) => {
 
       const termoBusca = limparTexto(value);
 
-      // Filtra clientes pelo nome "limpo" OU pelo telefone
       const filtered = clientes.filter(c => {
         const nomeClienteLimpo = limparTexto(c.nome);
         const matchNome = nomeClienteLimpo.includes(termoBusca);
         
-        // Limpa o telefone do banco só pra garantir a busca pelos números
         const telefoneLimpo = c.telefone ? c.telefone.replace(/\D/g, '') : '';
         const termoTelefoneLimpo = value.replace(/\D/g, '');
         
@@ -191,16 +190,14 @@ const Agenda = ({ user }) => {
     }
   };
 
-  // --- FUNÇÃO RECUPERADA: Ao clicar na lista, preenche os campos ---
   const handleSelectClient = (cliente) => {
     setFormData({
       ...formData,
       cliente_nome: cliente.nome,
       cliente_telefone: cliente.telefone || ''
     });
-    setShowSuggestions(false); // Fecha a listinha após o clique
+    setShowSuggestions(false); 
   };
-  // --------------------------------------------------
 
   const handleServicoChange = (value) => {
     const precoSugerido = tabelaPrecos[value] || 0;
@@ -411,7 +408,7 @@ const Agenda = ({ user }) => {
       barber: isJhonatas ? 'Jhonatas' : 'Miguel'
     });
     setEditingAgendamento(null);
-    setShowSuggestions(false); // Reseta a listinha ao fechar
+    setShowSuggestions(false); 
   };
 
   const openEditDialog = (agendamento) => {

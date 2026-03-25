@@ -52,18 +52,23 @@ const AgendamentoPublico = () => {
     forma_pagamento: 'Dinheiro'
   });
 
+  // CORREÇÃO: Adicionamos o servicoObj aqui para recalcular se o cliente trocar o serviço
   useEffect(() => {
-    if (formData.data && formData.barbeiro) {
+    if (formData.data && formData.barbeiro && formData.servicoObj) {
       buscarHorarios();
     }
-  }, [formData.data, formData.barbeiro]);
+  }, [formData.data, formData.barbeiro, formData.servicoObj]);
 
   const buscarHorarios = async () => {
     setLoadingHorarios(true);
     setFormData(prev => ({ ...prev, hora: '' })); 
     try {
       const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/disponibilidade?data=${formData.data}`);
+      
+      // CORREÇÃO: Agora enviamos o serviço na URL para o backend calcular o tempo exato!
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/disponibilidade?data=${formData.data}&servico=${encodeURIComponent(formData.servicoObj.nome)}`;
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setHorariosLivres(data.livres || []);
@@ -132,7 +137,6 @@ const AgendamentoPublico = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 py-8">
       <Card className="max-w-lg w-full shadow-2xl overflow-hidden border-0">
         
-        {/* NOVO CABEÇALHO BRANCO */}
         <div className="bg-white p-6 pb-8 flex flex-col items-center justify-center border-b-4 border-amber-600 text-center">
           <img src={logo} alt="Miguel Alves" className="h-40 mb-8 drop-shadow-sm" />
           <h1 className="text-2xl font-black text-gray-900 uppercase tracking-widest leading-tight">
@@ -167,7 +171,6 @@ const AgendamentoPublico = () => {
             <div className="space-y-4 pt-4 border-t border-gray-100">
               <Label className="text-gray-500 font-bold flex items-center gap-2"><Scissors className="h-4 w-4 text-amber-600"/> 3. Serviço</Label>
               
-              {/* SELECT CORRIGIDO */}
               <Select required onValueChange={(nomeServico) => {
                 const servicoEncontrado = SERVICOS_TABELA.find(s => s.nome === nomeServico);
                 setFormData({...formData, servicoObj: servicoEncontrado});
@@ -184,7 +187,6 @@ const AgendamentoPublico = () => {
                 </SelectContent>
               </Select>
 
-              {/* NOVO CAMPO DE PREÇO FIXO E PAGAMENTO */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label className="text-xs text-gray-500 font-bold">Valor (R$)</Label>

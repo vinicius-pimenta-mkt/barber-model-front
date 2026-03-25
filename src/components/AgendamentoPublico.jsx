@@ -134,7 +134,7 @@ const AgendamentoPublico = () => {
         
         {/* NOVO CABEÇALHO BRANCO */}
         <div className="bg-white p-6 pb-8 flex flex-col items-center justify-center border-b-4 border-amber-600 text-center">
-          <img src={logo} alt="Miguel Alves" className="h-20 mb-4 drop-shadow-sm" />
+          <img src={logo} alt="Miguel Alves" className="h-40 mb-8 drop-shadow-sm" />
           <h1 className="text-2xl font-black text-gray-900 uppercase tracking-widest leading-tight">
             Miguel Alves<br/>Barbershop
           </h1>

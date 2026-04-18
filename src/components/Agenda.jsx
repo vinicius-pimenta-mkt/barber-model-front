@@ -315,7 +315,8 @@ const Agenda = ({ user }) => {
           observacoes: slot.blockId
         };
 
-        if (blockData.barber === 'Migeual' || blockData.barber === 'Ambos') {
+        // Correção aplicada aqui (Miguel)
+        if (blockData.barber === 'Miguel' || blockData.barber === 'Ambos') {
           requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -556,230 +557,239 @@ const Agenda = ({ user }) => {
 
   return (
     <div className="space-y-6">
+      {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Agenda de Atendimentos</h1>
           <p className="text-gray-600">Gerencie os horários da barbearia</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50">
-                <CalendarDays className="h-4 w-4 mr-2 text-amber-600" />
-                {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "Filtrar Data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  if (date) {
-                    setSelectedDate(date);
-                    setCalendarOpen(false);
-                  }
-                }}
-                disabled={(date) => date.getDay() === 0 || date.getDay() === 1}
-                locale={ptBR}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {/* Filtro de data mantido no topo no mobile */}
+          <div className="w-full sm:w-auto">
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 flex justify-center">
+                  <CalendarDays className="h-4 w-4 mr-2 text-amber-600" />
+                  {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "Filtrar Data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                      setCalendarOpen(false);
+                    }
+                  }}
+                  disabled={(date) => date.getDay() === 0 || date.getDay() === 1}
+                  locale={ptBR}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-          <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="secondary" className="bg-gray-800 hover:bg-gray-900 text-white">
-                <Lock className="h-4 w-4 mr-2" /> Bloquear Horários
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Bloquear Horários na Agenda</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleBlockSubmit} className="space-y-4 pt-4">
-                {!isJhonatas && (
-                  <div className="space-y-2">
-                    <Label>Agenda(s) a bloquear</Label>
-                    <Select value={blockData.barber} onValueChange={(v) => setBlockData({...blockData, barber: v})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Ambos">Geral (Miguel e Jhonatas)</SelectItem>
-                        <SelectItem value="Miguel">Apenas Miguel</SelectItem>
-                        <SelectItem value="Jhonatas">Apenas Jhonatas</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Data de Início</Label>
-                    <Input type="date" required value={blockData.data_inicio} onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data Final</Label>
-                    <Input type="date" required value={blockData.data_fim} onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Hora Inicial</Label>
-                    <Input type="time" required value={blockData.hora_inicio} onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Hora Final</Label>
-                    <Input type="time" required value={blockData.hora_fim} onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} />
-                  </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label>Gerar bloqueios a cada:</Label>
-                    <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 Minutos</SelectItem>
-                        <SelectItem value="30">30 Minutos</SelectItem>
-                        <SelectItem value="60">1 Hora</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-3 pt-6 border-t">
-                  <Button type="button" variant="outline" onClick={() => setBlockDialogOpen(false)}>Cancelar</Button>
-                  <Button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white">Aplicar Bloqueio</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="bg-amber-600 hover:bg-amber-700 text-white">
-                <Plus className="h-4 w-4 mr-2" /> Novo Agendamento
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                <div className="grid grid-cols-2 gap-4">
+          {/* Botões de ação lado a lado no mobile na parte inferior do cabeçalho */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="secondary" className="flex-1 sm:flex-none bg-gray-800 hover:bg-gray-900 text-white">
+                  <Lock className="h-4 w-4 sm:mr-2" /> 
+                  <span className="text-xs sm:text-sm">Bloquear</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Bloquear Horários na Agenda</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleBlockSubmit} className="space-y-4 pt-4">
                   {!isJhonatas && (
-                  <div className="space-y-2 col-span-2">
-                    <Label>Barbeiro</Label>
-                    <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Miguel">Miguel</SelectItem>
-                        <SelectItem value="Jhonatas">Jhonatas</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Agenda(s) a bloquear</Label>
+                      <Select value={blockData.barber} onValueChange={(v) => setBlockData({...blockData, barber: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ambos">Geral (Miguel e Jhonatas)</SelectItem>
+                          <SelectItem value="Miguel">Apenas Miguel</SelectItem>
+                          <SelectItem value="Jhonatas">Apenas Jhonatas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                  
-                  {/* --- INÍCIO DA MÁGICA: CAMPO INTELIGENTE --- */}
-                  <div className="space-y-2 col-span-2 relative">
-                    <Label>Nome do Cliente</Label>
-                    <Input 
-                      required 
-                      value={formData.cliente_nome} 
-                      onChange={handleNameChange}
-                      onFocus={() => { if(formData.cliente_nome) setShowSuggestions(true) }}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      placeholder="Nome completo ou digite para buscar..."
-                    />
-                    
-                    {/* Lista suspensa de clientes */}
-                    {showSuggestions && filteredClientes.length > 0 && (
-                      <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
-                        {filteredClientes.map((c, idx) => (
-                          <li
-                            key={idx}
-                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b last:border-0"
-                            onMouseDown={(e) => {
-                              e.preventDefault(); 
-                              handleSelectClient(c);
-                            }}
-                          >
-                            <div className="font-medium text-gray-800">{c.nome}</div>
-                            {c.telefone && <div className="text-xs text-gray-500">{c.telefone}</div>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data de Início</Label>
+                      <Input type="date" required value={blockData.data_inicio} onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Final</Label>
+                      <Input type="date" required value={blockData.data_fim} onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Hora Inicial</Label>
+                      <Input type="time" required value={blockData.hora_inicio} onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Hora Final</Label>
+                      <Input type="time" required value={blockData.hora_fim} onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label>Gerar bloqueios a cada:</Label>
+                      <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15">15 Minutos</SelectItem>
+                          <SelectItem value="30">30 Minutos</SelectItem>
+                          <SelectItem value="60">1 Hora</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  {/* --- FIM DA MÁGICA --- */}
+                  <div className="flex justify-end gap-3 pt-6 border-t">
+                    <Button type="button" variant="outline" onClick={() => setBlockDialogOpen(false)}>Cancelar</Button>
+                    <Button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white">Aplicar Bloqueio</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
 
-                  <div className="space-y-2 col-span-2">
-                    <Label>Telefone do Cliente</Label>
-                    <Input 
-                      value={formData.cliente_telefone} 
-                      onChange={(e) => setFormData({...formData, cliente_telefone: e.target.value})}
-                      placeholder="(00) 00000-0000"
-                    />
+            <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-700 text-white">
+                  <Plus className="h-4 w-4 sm:mr-2" /> 
+                  <span className="text-xs sm:text-sm">Novo</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {!isJhonatas && (
+                    <div className="space-y-2 col-span-2">
+                      <Label>Barbeiro</Label>
+                      <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Miguel">Miguel</SelectItem>
+                          <SelectItem value="Jhonatas">Jhonatas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    )}
+                    
+                    {/* --- INÍCIO DA MÁGICA: CAMPO INTELIGENTE --- */}
+                    <div className="space-y-2 col-span-2 relative">
+                      <Label>Nome do Cliente</Label>
+                      <Input 
+                        required 
+                        value={formData.cliente_nome} 
+                        onChange={handleNameChange}
+                        onFocus={() => { if(formData.cliente_nome) setShowSuggestions(true) }}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        placeholder="Nome completo ou digite para buscar..."
+                      />
+                      
+                      {/* Lista suspensa de clientes */}
+                      {showSuggestions && filteredClientes.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                          {filteredClientes.map((c, idx) => (
+                            <li
+                              key={idx}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b last:border-0"
+                              onMouseDown={(e) => {
+                                e.preventDefault(); 
+                                handleSelectClient(c);
+                              }}
+                            >
+                              <div className="font-medium text-gray-800">{c.nome}</div>
+                              {c.telefone && <div className="text-xs text-gray-500">{c.telefone}</div>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    {/* --- FIM DA MÁGICA --- */}
+
+                    <div className="space-y-2 col-span-2">
+                      <Label>Telefone do Cliente</Label>
+                      <Input 
+                        value={formData.cliente_telefone} 
+                        onChange={(e) => setFormData({...formData, cliente_telefone: e.target.value})}
+                        placeholder="(00) 00000-0000"
+                      />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label>Serviço</Label>
+                      <Select value={formData.servico} onValueChange={handleServicoChange}>
+                        <SelectTrigger><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
+                        <SelectContent>
+                          {servicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data</Label>
+                      <Input 
+                        type="date" 
+                        required 
+                        value={formData.data} 
+                        onChange={(e) => setFormData({...formData, data: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Hora</Label>
+                      <Input 
+                        type="time" 
+                        required 
+                        value={formData.hora} 
+                        onChange={(e) => setFormData({...formData, hora: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Preço (R$)</Label>
+                      <Input 
+                        value={formData.preco} 
+                        onChange={(e) => setFormData({...formData, preco: e.target.value})}
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Forma de Pagamento</Label>
+                      <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {formasPagamento.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label>Status</Label>
+                      <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pendente">Pendente</SelectItem>
+                          <SelectItem value="Confirmado">Confirmado</SelectItem>
+                          <SelectItem value="Cancelado">Cancelado</SelectItem>
+                          <SelectItem value="Bloqueado">Bloqueado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label>Serviço</Label>
-                    <Select value={formData.servico} onValueChange={handleServicoChange}>
-                      <SelectTrigger><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
-                      <SelectContent>
-                        {servicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex justify-end gap-3 pt-6 border-t">
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                    <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white">
+                      {editingAgendamento ? 'Salvar Alterações' : 'Criar Agendamento'}
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Data</Label>
-                    <Input 
-                      type="date" 
-                      required 
-                      value={formData.data} 
-                      onChange={(e) => setFormData({...formData, data: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Hora</Label>
-                    <Input 
-                      type="time" 
-                      required 
-                      value={formData.hora} 
-                      onChange={(e) => setFormData({...formData, hora: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Preço (R$)</Label>
-                    <Input 
-                      value={formData.preco} 
-                      onChange={(e) => setFormData({...formData, preco: e.target.value})}
-                      placeholder="0,00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Forma de Pagamento</Label>
-                    <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {formasPagamento.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label>Status</Label>
-                    <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pendente">Pendente</SelectItem>
-                        <SelectItem value="Confirmado">Confirmado</SelectItem>
-                        <SelectItem value="Cancelado">Cancelado</SelectItem>
-                        <SelectItem value="Bloqueado">Bloqueado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-3 pt-6 border-t">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                  <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white">
-                    {editingAgendamento ? 'Salvar Alterações' : 'Criar Agendamento'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 

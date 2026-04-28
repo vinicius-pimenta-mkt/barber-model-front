@@ -1,23 +1,35 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Lock, UserCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Scissors } from 'lucide-react';
 import logo from '../assets/logo.png';
 
-// Importando a imagem de fundo da pasta assets
-import backgroundImageUrl from '../assets/fundologin.png';
+interface LoginResponse {
+  token: string;
+  user: {
+    id: number;
+    nome: string;
+    username: string;
+  };
+}
 
-const Login = () => {
+interface ErrorResponse {
+  error: string | { message: string };
+}
+
+const Login = ({ onLogin }: { onLogin: (user: LoginResponse['user']) => void }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
@@ -28,133 +40,92 @@ const Login = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      const data: LoginResponse | ErrorResponse = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = '/agenda';
+        const responseData = data as LoginResponse;
+        localStorage.setItem('token', responseData.token);
+        onLogin(responseData.user);
       } else {
-        setError(data.error || 'Falha na autenticação');
+        const errorData = data as ErrorResponse;
+        const errorMessage = typeof errorData.error === 'object' 
+          ? errorData.error.message 
+          : errorData.error;
+        setError(errorMessage || 'Erro ao fazer login');
       }
     } catch (err) {
-      setError('Erro de conexão com o servidor');
+      setError('Erro de conexão com o servidor. Verifique sua rede.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    // Container Principal 
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-neutral-950">
-      
-      {/* 1. A IMAGEM DE FUNDO REAL (À prova de falhas) */}
-      <img 
-        src={backgroundImageUrl} 
-        alt="Fundo" 
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      />
-
-      {/* 2. PELÍCULA ESCURA COM DESFOQUE (Fica em cima da imagem e atrás do formulário) */}
-      <div className="absolute inset-0 bg-neutral-950/20 backdrop-blur-[3px] z-10" />
-
-      {/* CABEÇALHO - Miguel Alves (Z-20 para ficar na frente de tudo) */}
-      <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
-          <div className="flex flex-col">
-            <h1 className="text-xl sm:text-2xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
-              MIGUEL ALVES
-            </h1>
-            <span className="text-[10px] sm:text-xs text-purple-300 font-bold uppercase tracking-widest">
-              Painel de Controle
-            </span>
+    <div className="min-h-[100dvh] bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4 sm:p-6">
+      <Card className="w-full max-w-[400px] shadow-xl border-none overflow-hidden">
+        <CardHeader className="text-center space-y-4 pt-8 pb-4">
+          <div className="flex justify-center mb-2">
+            {/* A borda e o fundo branco foram removidos. O tamanho aumentou de h-16 para h-32/h-40 */}
+            <img src={logo} alt="Miguel Alves" className="h-32 sm:h-40 w-auto object-contain drop-shadow-md" />
           </div>
-        </div>
-      </div>
-
-      {/* CONTEÚDO CENTRALIZADO (Z-20 para ficar na frente de tudo) */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 z-20 relative">
-        <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 shadow-2xl shadow-purple-950/20 backdrop-blur-md">
-          <CardHeader className="space-y-1 pb-4 text-center">
-            <UserCircle className="w-16 h-16 text-purple-500 mx-auto mb-2" />
-            <CardTitle className="text-2xl sm:text-3xl font-extrabold text-neutral-50 tracking-tight">
-              Miguel Alves Barbershop
+          <div className="space-y-1">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center justify-center gap-2 tracking-tight">
+              <Scissors className="h-5 w-5 text-amber-600" />
+              Miguel Alves
             </CardTitle>
-            <p className="text-sm text-neutral-400">
-              Entre com suas credenciais administrativas
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-5">
-              {error && (
-                <div className="bg-red-950 border border-red-800 text-red-200 p-3 rounded-lg text-sm font-medium text-center animate-pulse">
-                  {error}
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">Painel Administrativo</p>
+          </div>
+        </CardHeader>
+        <CardContent className="px-6 sm:px-8 pb-10">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-xs font-bold text-gray-700 uppercase ml-1">Usuário</Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Digite seu usuário"
+                required
+                className="w-full h-11 bg-gray-50 border-gray-200 focus:border-amber-500 focus:ring-amber-500 rounded-xl transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-xs font-bold text-gray-700 uppercase ml-1">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+                required
+                className="w-full h-11 bg-gray-50 border-gray-200 focus:border-amber-500 focus:ring-amber-500 rounded-xl transition-all"
+              />
+            </div>
+            
+            {error && (
+              <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800 rounded-xl py-3">
+                <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full h-11 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl shadow-sm shadow-amber-100 transition-all active:scale-[0.98]"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Entrando...</span>
                 </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="username">Usuário</Label>
-                <div className="relative">
-                  <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="Seu usuário"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-purple-600"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-purple-600"
-                  />
-                </div>
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold h-12 text-lg mt-2 shadow-lg shadow-purple-950/30"
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    Autenticando...
-                  </div>
-                ) : (
-                  'Entrar no Painel'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-        
-        <p className="mt-8 text-center text-xs text-neutral-500">
-          Desenvolvido por Vinicius | Sistema de Gestão Barbearia v1.0
-        </p>
-      </div>
+              ) : 'Entrar no Painel'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-const Label = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) => (
-  <label htmlFor={htmlFor} className="text-sm font-semibold text-neutral-300 ml-1">
-    {children}
-  </label>
-);
 
 export default Login;

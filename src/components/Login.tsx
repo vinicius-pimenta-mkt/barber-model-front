@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Lock, UserCircle } from 'lucide-react';
-import logo from '../assets/logo.png';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -57,7 +56,8 @@ const Login = () => {
       {/* CABEÇALHO - MIGUEL ALVES */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
+          {/* Logo Branca da pasta public */}
+          <img src="/logobranca.jpg" alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col">
             <h1 className="text-xl sm:text-2xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
               MIGUEL ALVES
@@ -75,7 +75,6 @@ const Login = () => {
           <CardHeader className="space-y-1 pb-4 text-center">
             <UserCircle className="w-16 h-16 text-purple-500 mx-auto mb-2" />
             
-            {/* TÍTULO ESTILIZADO CONFORME CABEÇALHO */}
             <div className="flex flex-col items-center">
               <CardTitle className="text-2xl sm:text-3xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
                 MIGUEL ALVES
@@ -148,7 +147,7 @@ const Login = () => {
         </Card>
         
         <p className="mt-8 text-center text-xs text-neutral-500">
-          Desenvolvido por Vinicius | Sistema de Gestão Barbearia v1.0
+          Desenvolvido por UNV Tech | Sistema de Gestão Barbearia v1.0
         </p>
       </div>
     </div>

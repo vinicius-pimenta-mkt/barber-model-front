@@ -7,24 +7,20 @@ import {
   Menu,
   X,
   UserCheck,
-  Package // <-- NOVO ÍCONE DE CAIXA IMPORTADO AQUI
+  Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import logo from '../assets/logo.png';
 
 const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Verifica se quem está logado é o Jhonatas
   const isJhonatas = user?.role === 'jhonatas';
   
-  // LISTA DE MENUS: Estoque e Relatórios liberados. Planos restrito ao Admin.
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'clientes', label: 'Clientes', icon: Users },
-    { id: 'produtos', label: 'Estoque', icon: Package }, // <-- NOVO BOTÃO DE ESTOQUE AQUI
+    { id: 'produtos', label: 'Estoque', icon: Package },
     { id: 'relatorios', label: 'Relatórios', icon: FileText },
     ...(!isJhonatas ? [
       { id: 'planos', label: 'Planos', icon: UserCheck }
@@ -33,101 +29,97 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
 
   const handleMenuItemClick = (itemId) => {
     onSectionChange(itemId);
-    setIsMobileMenuOpen(false); // Fecha o menu mobile após seleção
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-8 right-4 z-50">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="bg-white shadow-lg"
-        >
-          {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+      {/* MENU MOBILE (HEADER) */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 flex items-center justify-between px-4 z-50">
+        <div className="flex items-center gap-2">
+          <img src="/logobranca.png" alt="Logo" className="h-8 w-auto" />
+          <span className="text-white font-bold text-sm uppercase tracking-tighter">Miguel Alves</span>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
+          {isMobileMenuOpen ? <X /> : <Menu />}
         </Button>
       </div>
 
-      {/* Sidebar */}
+      {/* SIDEBAR DESKTOP E MOBILE OVERLAY */}
       <div className={`
-        fixed lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-45
-        w-64 bg-white shadow-lg h-screen flex flex-col right-0 lg:right-auto
-        ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+        fixed inset-y-0 left-0 z-40 w-64 bg-neutral-950 border-r border-neutral-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        {/* Header */}
-        <div className="p-6 border-b">
-          <div className="flex items-center space-x-3">
-            <img src={logo} alt="Miguel Alvez" className="h-10 w-auto" />
-            <div>
-              <h2 className="font-bold text-gray-900 leading-tight">Miguel Alves</h2>
-              <p className="text-sm text-amber-600 font-bold leading-tight">Barbershop</p>
+        <div className="flex flex-col h-full">
+          {/* Logo Section */}
+          <div className="p-6">
+            <div className="flex items-center space-x-3">
+              <img src="/logobranca.png" alt="Logo" className="h-10 w-auto" />
+              <div>
+                <h2 className="text-lg font-black text-white leading-none uppercase tracking-tighter">Miguel Alves</h2>
+                <p className="text-[10px] text-purple-400 font-bold uppercase tracking-widest mt-1">Barbershop</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Menu Principal */}
-        <div className="flex-1 py-6">
-          <div className="px-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              MENU PRINCIPAL
-            </p>
-            <nav className="space-y-1">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeSection === item.id;
-                
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleMenuItemClick(item.id)}
-                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-amber-100 text-amber-900 border-r-2 border-amber-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-amber-600' : 'text-gray-400'}`} />
-                    {item.label}
-                    {isActive && (
-                      <div className="ml-auto w-2 h-2 bg-amber-600 rounded-full"></div>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
+          {/* Navigation */}
+          <nav className="flex-1 px-4 space-y-2 mt-4">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleMenuItemClick(item.id)}
+                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${
+                    isActive 
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' 
+                      : 'text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100'
+                  }`}
+                >
+                  <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-neutral-500'}`} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-              <span className="text-amber-600 font-semibold text-sm">
-                {isJhonatas ? 'J' : 'BM'}
-              </span>
+          {/* User & Logout */}
+          <div className="p-4 border-t border-neutral-800">
+            <div className="flex items-center space-x-3 mb-4 px-2">
+              <div className="w-9 h-9 bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-700">
+                <span className="text-purple-400 font-bold text-xs uppercase">
+                  {isJhonatas ? 'J' : 'MA'}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate uppercase">
+                  {isJhonatas ? 'Jhonatas' : 'Miguel Alves'}
+                </p>
+                <p className="text-[10px] text-neutral-500 font-medium">
+                  {isJhonatas ? 'Barbeiro' : 'Administrador'}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                {isJhonatas ? 'Jhonatas' : 'Miguel Alves'}
-              </p>
-              <p className="text-xs text-gray-600">
-                {isJhonatas ? 'Barbeiro' : 'Administrador'}
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLogout}
+              className="w-full bg-transparent border-neutral-800 text-neutral-400 hover:bg-red-950 hover:text-red-400 hover:border-red-900 transition-colors gap-2"
+            >
+              <LogOut className="h-4 w-4" /> Sair do Sistema
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
         </div>
       </div>
+
+      {/* Overlay para fechar no mobile ao clicar fora */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
     </>
   );
 };

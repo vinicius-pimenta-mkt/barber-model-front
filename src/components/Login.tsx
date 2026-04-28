@@ -3,10 +3,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Lock, UserCircle } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import logo from '../assets/logo.png';
 
-// Importando a imagem de fundo (Certifique-se de colocar okaas.jpg na mesma pasta deste arquivo)
-import backgroundImageUrl from './okaas.jpg';
+// Importando a imagem de fundo direto da pasta assets
+import backgroundImageUrl from '../assets/fundologin.png';
 
 const Login = () => {
   const [username, setUsername] = useState('');

@@ -43,20 +43,20 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-neutral-950">
       
-      {/* 1. IMAGEM DE FUNDO (Puxando da pasta public) */}
+      {/* IMAGEM DE FUNDO (Puxando da pasta public) */}
       <img 
         src="/fundologin.png" 
         alt="Fundo" 
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
-      {/* 2. PELÍCULA COM 90% DE TRANSPARÊNCIA E LEVE BLUR */}
+      {/* PELÍCULA COM 90% DE TRANSPARÊNCIA E LEVE BLUR */}
       <div className="absolute inset-0 bg-neutral-950/10 backdrop-blur-[2px] z-10" />
 
       {/* CABEÇALHO - MIGUEL ALVES */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
-          {/* CORRIGIDO PARA .png */}
+          {/* Logo Branca puxando direto da pasta public */}
           <img src="/logobranca.png" alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col">
             <h1 className="text-xl sm:text-2xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
@@ -75,6 +75,7 @@ const Login = () => {
           <CardHeader className="space-y-1 pb-4 text-center">
             <UserCircle className="w-16 h-16 text-purple-500 mx-auto mb-2" />
             
+            {/* TÍTULO ESTILIZADO CONFORME CABEÇALHO */}
             <div className="flex flex-col items-center">
               <CardTitle className="text-2xl sm:text-3xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
                 MIGUEL ALVES

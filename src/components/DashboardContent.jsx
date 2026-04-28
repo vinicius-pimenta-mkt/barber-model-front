@@ -65,7 +65,7 @@ const DashboardContent = () => {
   const hoje = new Date();
   const hojeStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
 
-  // Filtros de barbeiros separados (como no seu original)
+  // Filtros de barbeiros separados
   const agendamentosMiguel = dashboardData.agendamentos.filter(a => a.barber === 'Miguel' && a.status !== 'Bloqueado');
   const agendamentosJhonatas = dashboardData.agendamentos.filter(a => a.barber === 'Jhonatas' && a.status !== 'Bloqueado');
 
@@ -93,7 +93,6 @@ const DashboardContent = () => {
       
       {/* CABEÇALHO */}
       <div className="flex items-center space-x-4">
-        {/* Puxando a logo branca do public */}
         <img src="/logobranca.png" alt="Miguel Alves Barbearia" className="h-12 w-auto" />
         <div>
           <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Dashboard</h1>
@@ -101,7 +100,7 @@ const DashboardContent = () => {
         </div>
       </div>
 
-      {/* GRID DE CARDS PRINCIPAIS (Renderizados via .map) */}
+      {/* GRID DE CARDS PRINCIPAIS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, idx) => (
           <Card key={idx} className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl">
@@ -172,3 +171,41 @@ const DashboardContent = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-neutral-800">
+              {agendamentosJhonatas.length > 0 ? (
+                agendamentosJhonatas.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-neutral-800 text-amber-400 rounded-full flex items-center justify-center font-black border border-neutral-700">
+                        {a.cliente_nome?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-bold text-neutral-100">{a.cliente_nome}</p>
+                        <p className="text-xs text-neutral-400">{a.servico}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-black text-white text-lg">
+                        {formatarHorario(a.hora)}
+                        <span className="text-[10px] text-neutral-500 ml-1 font-normal">
+                          ({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})
+                        </span>
+                      </p>
+                      <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase`}>
+                        {a.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+      </div>
+    </div>
+  );
+};
+
+export default DashboardContent;

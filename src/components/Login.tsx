@@ -56,8 +56,8 @@ const Login = () => {
       {/* CABEÇALHO - MIGUEL ALVES */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
-          {/* Logo Branca da pasta public */}
-          <img src="/logobranca.jpg" alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
+          {/* CORRIGIDO PARA .png */}
+          <img src="/logobranca.png" alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col">
             <h1 className="text-xl sm:text-2xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
               MIGUEL ALVES

@@ -45,16 +45,21 @@ const Login = () => {
   };
 
   return (
-    // Container Principal com a imagem de fundo
-    <div 
-      className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat relative"
-      style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-    >
-      {/* Camada de sobreposição com 90% de transparência (bg-neutral-950/10) e leve desfoque */}
-      <div className="absolute inset-0 bg-neutral-950/10 backdrop-blur-[2px] z-0" />
+    // Container Principal 
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-neutral-950">
+      
+      {/* 1. A IMAGEM DE FUNDO REAL (À prova de falhas) */}
+      <img 
+        src={backgroundImageUrl} 
+        alt="Fundo" 
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      />
 
-      {/* CABEÇALHO - Miguel Alves */}
-      <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-10 relative">
+      {/* 2. PELÍCULA ESCURA COM DESFOQUE (Fica em cima da imagem e atrás do formulário) */}
+      <div className="absolute inset-0 bg-neutral-950/20 backdrop-blur-[3px] z-10" />
+
+      {/* CABEÇALHO - Miguel Alves (Z-20 para ficar na frente de tudo) */}
+      <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
           <img src={logo} alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col">
@@ -68,12 +73,11 @@ const Login = () => {
         </div>
       </div>
 
-      {/* CONTEÚDO CENTRALIZADO */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 z-10 relative">
+      {/* CONTEÚDO CENTRALIZADO (Z-20 para ficar na frente de tudo) */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 z-20 relative">
         <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 shadow-2xl shadow-purple-950/20 backdrop-blur-md">
           <CardHeader className="space-y-1 pb-4 text-center">
             <UserCircle className="w-16 h-16 text-purple-500 mx-auto mb-2" />
-            {/* Título alterado conforme solicitado */}
             <CardTitle className="text-2xl sm:text-3xl font-extrabold text-neutral-50 tracking-tight">
               Miguel Alves Barbershop
             </CardTitle>
@@ -147,7 +151,6 @@ const Login = () => {
   );
 };
 
-// Componente de Label para manter o estilo local
 const Label = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) => (
   <label htmlFor={htmlFor} className="text-sm font-semibold text-neutral-300 ml-1">
     {children}

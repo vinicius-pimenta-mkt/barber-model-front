@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Lock, UserCircle } from 'lucide-react';
 import logo from '../assets/logo.png';
 
-// Importando a imagem de fundo direto da pasta assets
+// Importando a imagem de fundo da pasta assets
 import backgroundImageUrl from '../assets/fundologin.png';
 
 const Login = () => {
@@ -45,15 +45,15 @@ const Login = () => {
   };
 
   return (
-    // Container Principal com a imagem fundologin.png
+    // Container Principal com a imagem de fundo
     <div 
       className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: `url(${backgroundImageUrl})` }}
     >
-      {/* Camada de sobreposição com leve desfoque (blur-sm) aplicado apenas ao fundo */}
-      <div className="absolute inset-0 bg-neutral-950/70 backdrop-blur-sm z-0" />
+      {/* Camada de sobreposição com 90% de transparência (bg-neutral-950/10) e leve desfoque */}
+      <div className="absolute inset-0 bg-neutral-950/10 backdrop-blur-[2px] z-0" />
 
-      {/* CABEÇALHO - Ajustado para MIGUEL ALVES */}
+      {/* CABEÇALHO - Miguel Alves */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-10 relative">
         <div className="flex items-center gap-3">
           <img src={logo} alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
@@ -68,13 +68,14 @@ const Login = () => {
         </div>
       </div>
 
-      {/* CONTEÚDO CENTRALIZADO (CARD MODERNO) */}
+      {/* CONTEÚDO CENTRALIZADO */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 z-10 relative">
         <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 shadow-2xl shadow-purple-950/20 backdrop-blur-md">
           <CardHeader className="space-y-1 pb-4 text-center">
             <UserCircle className="w-16 h-16 text-purple-500 mx-auto mb-2" />
+            {/* Título alterado conforme solicitado */}
             <CardTitle className="text-2xl sm:text-3xl font-extrabold text-neutral-50 tracking-tight">
-              Acesso ao Sistema
+              Miguel Alves Barbershop
             </CardTitle>
             <p className="text-sm text-neutral-400">
               Entre com suas credenciais administrativas
@@ -146,7 +147,7 @@ const Login = () => {
   );
 };
 
-// Componente de Label para manter o estilo
+// Componente de Label para manter o estilo local
 const Label = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) => (
   <label htmlFor={htmlFor} className="text-sm font-semibold text-neutral-300 ml-1">
     {children}

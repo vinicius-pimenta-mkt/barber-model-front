@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
-  Calendar, 
   DollarSign, 
   Clock,
   CheckCircle,
@@ -52,7 +51,6 @@ const DashboardContent = () => {
     return `${dia}/${mes}`;
   };
 
-  // Cores adaptadas para o Modo Escuro (Dark Mode)
   const getStatusColor = (status) => {
     switch (status) {
       case 'Confirmado': return 'bg-green-950/50 text-green-400 border-green-900/50';
@@ -65,23 +63,22 @@ const DashboardContent = () => {
   const hoje = new Date();
   const hojeStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
 
-  // Filtros de barbeiros separados
   const agendamentosMiguel = dashboardData.agendamentos.filter(a => a.barber === 'Miguel' && a.status !== 'Bloqueado');
   const agendamentosJhonatas = dashboardData.agendamentos.filter(a => a.barber === 'Jhonatas' && a.status !== 'Bloqueado');
 
-  // Otimização dos Cards Superiores
   const cards = [
-    { title: 'Total de Agendamentos', value: dashboardData.atendimentosHoje, icon: Users, color: 'text-amber-500', label: 'marcados para hoje' },
+    { title: 'Total de Agendamentos', value: dashboardData.atendimentosHoje, icon: Users, color: 'text-[#DEAE60]', label: 'marcados para hoje' },
     { title: 'Receita do Dia', value: `R$ ${Number(dashboardData.receitaDia || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-green-500', label: 'faturamento confirmado' },
     { title: 'Serviços Realizados', value: dashboardData.servicosRealizados, icon: CheckCircle, color: 'text-blue-500', label: 'concluídos hoje' },
-    { title: 'Pendentes', value: dashboardData.pendentesFuturos, icon: Clock, color: 'text-purple-500', label: 'próximas horas' },
+    { title: 'Pendentes', value: dashboardData.pendentesFuturos, icon: Clock, color: 'text-amber-500', label: 'próximas horas' },
   ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          {/* Loading em Dourado */}
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DEAE60] mx-auto"></div>
           <p className="mt-4 text-neutral-400 font-medium tracking-wide">Carregando painel...</p>
         </div>
       </div>
@@ -91,7 +88,6 @@ const DashboardContent = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* CABEÇALHO */}
       <div className="flex items-center space-x-4">
         <img src="/logobranca.png" alt="Miguel Alves Barbearia" className="h-12 w-auto" />
         <div>
@@ -100,7 +96,6 @@ const DashboardContent = () => {
         </div>
       </div>
 
-      {/* GRID DE CARDS PRINCIPAIS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, idx) => (
           <Card key={idx} className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl">
@@ -116,14 +111,13 @@ const DashboardContent = () => {
         ))}
       </div>
 
-      {/* FILAS SEPARADAS: MIGUEL E JHONATAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* COLUNA MIGUEL */}
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
           <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
             <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
-              <User className="h-5 w-5 text-purple-500" />
+              <User className="h-5 w-5 text-[#DEAE60]" />
               Próximos: Miguel
             </CardTitle>
           </CardHeader>
@@ -133,7 +127,8 @@ const DashboardContent = () => {
                 agendamentosMiguel.map((a) => (
                   <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-neutral-800 text-purple-400 rounded-full flex items-center justify-center font-black border border-neutral-700">
+                      {/* Avatar Dourado */}
+                      <div className="w-10 h-10 bg-neutral-950 text-[#DEAE60] rounded-full flex items-center justify-center font-black border border-[#DEAE60]/30 shadow-inner">
                         {a.cliente_nome?.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -165,7 +160,7 @@ const DashboardContent = () => {
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
           <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
             <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
-              <User className="h-5 w-5 text-amber-500" />
+              <User className="h-5 w-5 text-neutral-400" />
               Próximos: Jhonatas
             </CardTitle>
           </CardHeader>
@@ -175,7 +170,7 @@ const DashboardContent = () => {
                 agendamentosJhonatas.map((a) => (
                   <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-neutral-800 text-amber-400 rounded-full flex items-center justify-center font-black border border-neutral-700">
+                      <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-black border border-neutral-700 shadow-inner">
                         {a.cliente_nome?.charAt(0).toUpperCase()}
                       </div>
                       <div>

@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Calendar, Scissors, User, Clock } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { CheckCircle, Calendar, Scissors, User, Clock, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const SERVICOS_TABELA = [
   { nome: 'Barba', preco: 30.00 },
@@ -49,6 +53,7 @@ const AgendamentoPublico = () => {
   const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     if (formData.data && formData.barber) {
@@ -115,7 +120,6 @@ const AgendamentoPublico = () => {
       <img src="/fundologin.png" alt="Fundo" className="fixed inset-0 w-full h-full object-cover z-0" />
       <div className="fixed inset-0 bg-neutral-950/40 backdrop-blur-[3px] z-10" />
 
-      {/* CABEÇALHO IGUAL AO LOGIN */}
       <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
           <img src="/logobranca.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
@@ -130,7 +134,7 @@ const AgendamentoPublico = () => {
         <Card className="w-full max-w-lg bg-neutral-900/90 border-neutral-800 shadow-2xl backdrop-blur-md">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter flex items-center justify-center gap-2">
-              <Calendar className="text-purple-500 h-6 w-6" /> Agende seu Horário
+              <CalendarDays className="text-purple-500 h-6 w-6" /> Agende seu Horário
             </CardTitle>
           </CardHeader>
           
@@ -140,13 +144,16 @@ const AgendamentoPublico = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1">Seu Nome</Label>
-                  <Input 
-                    required 
-                    value={formData.cliente_nome} 
-                    onChange={e => setFormData({...formData, cliente_nome: e.target.value})}
-                    placeholder="Nome completo"
-                    className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-purple-600"
-                  />
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                    <Input 
+                      required 
+                      value={formData.cliente_nome} 
+                      onChange={e => setFormData({...formData, cliente_nome: e.target.value})}
+                      placeholder="Nome completo"
+                      className="bg-neutral-950 border-neutral-800 text-white pl-10 h-12 focus-visible:ring-purple-600"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1">Telefone</Label>
@@ -198,17 +205,40 @@ const AgendamentoPublico = () => {
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <div className="space-y-2">
                   <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1">Data do Atendimento</Label>
-                  {/* CAMPO DE DATA RESTAURADO PARA O ORIGINAL */}
-                  <Input 
-                    type="date" 
-                    required 
-                    value={formData.data} 
-                    onChange={e => setFormData({...formData, data: e.target.value, hora: ''})}
-                    className="bg-neutral-950 border-neutral-800 text-white h-12"
-                  />
+                  
+                  {/* CALENDÁRIO VIA POPOVER (ESTILO AGENDA INTERNA) */}
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal bg-neutral-950 border-neutral-800 text-white h-12 hover:bg-neutral-900 focus-visible:ring-purple-600"
+                      >
+                        <Calendar className="mr-2 h-4 w-4 text-neutral-500" />
+                        {formData.data ? (
+                          format(new Date(formData.data + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                        ) : (
+                          <span className="text-neutral-500">Clique para escolher a data</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-800" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={formData.data ? new Date(formData.data + 'T12:00:00') : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setFormData({ ...formData, data: format(date, 'yyyy-MM-dd'), hora: '' });
+                            setCalendarOpen(false);
+                          }
+                        }}
+                        disabled={(date) => date.getDay() === 0 || date.getDay() === 1 || date < new Date(new Date().setHours(0,0,0,0))}
+                        locale={ptBR}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
-                {/* HORÁRIOS DISPONÍVEIS - LÓGICA RESTAURADA */}
                 {formData.data && (
                   <div className="space-y-3">
                     <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1 flex items-center gap-2">

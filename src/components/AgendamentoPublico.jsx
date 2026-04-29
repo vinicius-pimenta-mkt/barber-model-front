@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Calendar, Scissors, User, DollarSign, Clock } from 'lucide-react';
+import { CheckCircle, Calendar, Scissors, User, DollarSign, Clock, CalendarDays } from 'lucide-react';
 
 const SERVICOS_TABELA = [
   { nome: 'Barba', preco: 30.00 },
@@ -41,7 +41,7 @@ const AgendamentoPublico = () => {
   const [sucesso, setSucesso] = useState(false);
 
   const [formData, setFormData] = useState({
-    barbeiro: 'Miguel', // Variável original
+    barbeiro: 'Miguel',
     cliente_nome: '',
     cliente_telefone: '',
     servicoObj: null, 
@@ -50,7 +50,7 @@ const AgendamentoPublico = () => {
     forma_pagamento: 'Dinheiro'
   });
 
-  // Lógica Original Intacta
+  // Lógica Original
   useEffect(() => {
     if (formData.data && formData.barbeiro && formData.servicoObj) {
       buscarHorarios();
@@ -122,7 +122,7 @@ const AgendamentoPublico = () => {
           <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
           <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Agendamento Confirmado!</h2>
           <p className="text-neutral-400 mb-6 px-4">Sua vaga está garantida. Te esperamos no dia <strong className="text-white">{formData.data.split('-').reverse().join('/')}</strong> às <strong className="text-white">{formData.hora}</strong>.</p>
-          <Button onClick={() => window.location.reload()} className="w-full max-w-xs mx-auto bg-purple-700 hover:bg-purple-600 text-white font-bold">
+          <Button onClick={() => window.location.reload()} className="w-full max-w-xs mx-auto bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">
             Fazer outro agendamento
           </Button>
         </Card>
@@ -137,13 +137,13 @@ const AgendamentoPublico = () => {
       <img src="/fundologin.png" alt="Fundo" className="fixed inset-0 w-full h-full object-cover z-0" />
       <div className="fixed inset-0 bg-neutral-950/40 backdrop-blur-[3px] z-10" />
 
-      {/* CABEÇALHO */}
-      <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
+      {/* CABEÇALHO COM DOURADO */}
+      <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-[#DEAE60]/20 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
           <img src="/logobranca.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col text-left">
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tighter leading-none uppercase">MIGUEL ALVES</h1>
-            <span className="text-[10px] sm:text-xs text-purple-300 font-bold uppercase tracking-widest">BARBERSHOP</span>
+            <span className="text-[10px] sm:text-xs text-[#DEAE60] font-bold uppercase tracking-widest">BARBERSHOP</span>
           </div>
         </div>
       </header>
@@ -154,7 +154,7 @@ const AgendamentoPublico = () => {
           
           <div className="p-6 text-center border-b border-neutral-800">
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight flex items-center justify-center gap-2">
-              <Calendar className="h-6 w-6 text-purple-500" /> Agende seu Horário
+              <CalendarDays className="h-6 w-6 text-[#DEAE60]" /> Agende seu Horário
             </h1>
             <p className="text-neutral-400 font-medium mt-1 text-sm">
               Siga os passos abaixo
@@ -164,16 +164,16 @@ const AgendamentoPublico = () => {
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* PASSO 1: PROFISSIONAL */}
+              {/* PASSO 1: PROFISSIONAL (DOURADO NO SELECIONADO) */}
               <div className="space-y-3">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
-                  <User className="h-4 w-4 text-purple-500"/> 1. Escolha o Profissional
+                  <User className="h-4 w-4 text-[#DEAE60]"/> 1. Escolha o Profissional
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button type="button" variant="outline" className={formData.barbeiro === 'Miguel' ? 'bg-purple-600 hover:bg-purple-700 text-white font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
+                  <Button type="button" variant="outline" className={formData.barbeiro === 'Miguel' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
                     Miguel
                   </Button>
-                  <Button type="button" variant="outline" className={formData.barbeiro === 'Jhonatas' ? 'bg-purple-600 hover:bg-purple-700 text-white font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
+                  <Button type="button" variant="outline" className={formData.barbeiro === 'Jhonatas' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
                     Jhonatas
                   </Button>
                 </div>
@@ -182,14 +182,14 @@ const AgendamentoPublico = () => {
               {/* PASSO 2: SERVIÇO */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
-                  <Scissors className="h-4 w-4 text-purple-500"/> 2. Serviço e Pagamento
+                  <Scissors className="h-4 w-4 text-[#DEAE60]"/> 2. Serviço e Pagamento
                 </Label>
                 
                 <Select required onValueChange={(nomeServico) => {
                   const servicoEncontrado = SERVICOS_TABELA.find(s => s.nome === nomeServico);
                   setFormData({...formData, servicoObj: servicoEncontrado});
                 }}>
-                  <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12">
+                  <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]">
                     <SelectValue placeholder="Selecione o Serviço" />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
@@ -207,7 +207,7 @@ const AgendamentoPublico = () => {
                       <Input 
                         readOnly 
                         value={formData.servicoObj ? formData.servicoObj.preco.toFixed(2).replace('.', ',') : '0,00'} 
-                        className="bg-neutral-950/50 text-white font-black pl-9 border-neutral-800 cursor-not-allowed h-12" 
+                        className="bg-neutral-950/50 text-white font-black pl-9 border-neutral-800 cursor-not-allowed h-12 focus-visible:ring-[#DEAE60]" 
                       />
                     </div>
                   </div>
@@ -215,7 +215,7 @@ const AgendamentoPublico = () => {
                   <div className="space-y-2">
                     <Label className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-1">Pagamento</Label>
                     <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                      <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12"><SelectValue placeholder="Forma" /></SelectTrigger>
+                      <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]"><SelectValue placeholder="Forma" /></SelectTrigger>
                       <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
                         <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                         <SelectItem value="Pix">Pix</SelectItem>
@@ -227,10 +227,10 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              {/* PASSO 3: DATA E HORA */}
+              {/* PASSO 3: DATA E HORA (DOURADO NO SELECIONADO) */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-purple-500"/> 3. Data e Hora
+                  <Clock className="h-4 w-4 text-[#DEAE60]"/> 3. Data e Hora
                 </Label>
                 
                 <Input 
@@ -239,7 +239,7 @@ const AgendamentoPublico = () => {
                   min={hojeStr} 
                   value={formData.data} 
                   onChange={e => setFormData({...formData, data: e.target.value})} 
-                  className="bg-neutral-950 border-neutral-800 text-white h-12 px-4" 
+                  className="bg-neutral-950 border-neutral-800 text-white h-12 px-4 focus-visible:ring-[#DEAE60]" 
                   style={{ colorScheme: 'dark' }} 
                 />
                 
@@ -247,7 +247,7 @@ const AgendamentoPublico = () => {
                   <div className="pt-2 animate-in fade-in duration-300">
                     <Label className="text-[10px] text-neutral-500 mb-2 block font-bold uppercase tracking-widest ml-1">Horários Disponíveis:</Label>
                     {loadingHorarios ? (
-                      <div className="text-xs text-purple-400 animate-pulse font-medium bg-neutral-950 p-3 rounded-lg text-center border border-neutral-800">
+                      <div className="text-xs text-[#DEAE60] animate-pulse font-medium bg-neutral-950 p-3 rounded-lg text-center border border-neutral-800">
                         Buscando horários para este serviço...
                       </div>
                     ) : horariosLivres.length > 0 ? (
@@ -258,8 +258,8 @@ const AgendamentoPublico = () => {
                             onClick={() => setFormData({...formData, hora: h})}
                             className={`p-2 rounded-lg text-sm font-bold border transition-all ${
                               formData.hora === h 
-                                ? 'bg-purple-600 text-white border-purple-500 shadow-md scale-[1.02]' 
-                                : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-purple-500'
+                                ? 'bg-[#DEAE60] text-neutral-950 border-[#DEAE60] shadow-md scale-[1.02]' 
+                                : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-[#DEAE60]'
                             }`}
                           >
                             {h}
@@ -284,18 +284,18 @@ const AgendamentoPublico = () => {
               {/* PASSO 4: DADOS PESSOAIS */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
-                  <User className="h-4 w-4 text-purple-500"/> 4. Seus Dados
+                  <User className="h-4 w-4 text-[#DEAE60]"/> 4. Seus Dados
                 </Label>
                 <div className="grid grid-cols-1 gap-4">
-                  <Input required placeholder="Seu Nome Completo" value={formData.cliente_nome} onChange={e => setFormData({...formData, cliente_nome: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12" />
-                  <Input required placeholder="Telefone / WhatsApp" value={formData.cliente_telefone} onChange={e => setFormData({...formData, cliente_telefone: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12" />
+                  <Input required placeholder="Seu Nome Completo" value={formData.cliente_nome} onChange={e => setFormData({...formData, cliente_nome: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]" />
+                  <Input required placeholder="Telefone / WhatsApp" value={formData.cliente_telefone} onChange={e => setFormData({...formData, cliente_telefone: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]" />
                 </div>
               </div>
 
               <Button 
                 type="submit" 
                 disabled={salvando || !formData.hora || !formData.servicoObj || !formData.cliente_nome} 
-                className="w-full bg-purple-700 hover:bg-purple-600 text-white h-14 text-lg font-black shadow-xl shadow-purple-950/40 mt-6 uppercase tracking-tighter"
+                className="w-full bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 h-14 text-lg font-black shadow-xl shadow-black/30 mt-6 uppercase tracking-tighter"
               >
                 {salvando ? 'Processando...' : 'Confirmar Agendamento'}
               </Button>

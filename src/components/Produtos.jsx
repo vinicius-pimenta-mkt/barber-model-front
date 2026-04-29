@@ -96,14 +96,17 @@ const Produtos = () => {
   }
 
   return (
-    // pt-8 para mobile e pt-4 para desktop (descola do topo)
     <div className="space-y-6 animate-in fade-in duration-500 pt-8 sm:pt-4">
       
-      {/* CABEÇALHO RESPONSIVO */}
+      {/* CABEÇALHO RESPONSIVO COM SHADOW NO TEXTO PARA LEITURA FÁCIL */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Estoque e Produtos</h1>
-          <p className="text-neutral-400">Controle vendas e compras de produtos da barbearia</p>
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            Estoque e Produtos
+          </h1>
+          <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">
+            Controle vendas e compras de produtos da barbearia
+          </p>
         </div>
         
         <Dialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if(!v) { setProdutoEdit(null); setFormData({nome:'', preco:'', estoque:''}); }}}>
@@ -144,7 +147,7 @@ const Produtos = () => {
         </Dialog>
       </div>
 
-      {/* LISTA DE PRODUTOS (BRANCO COM VIDRO FOSCO) */}
+      {/* LISTA DE PRODUTOS (BRANCO COM VIDRO FOSCO E MAIS ESPAÇAMENTO NAS CÉLULAS) */}
       <Card className="bg-white/90 backdrop-blur-md border-white/40 shadow-xl overflow-hidden">
         <CardHeader className="border-b border-gray-200/50 bg-white/50">
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold uppercase tracking-tight text-gray-900">
@@ -157,17 +160,16 @@ const Produtos = () => {
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50/50 text-gray-500 uppercase text-[10px] sm:text-xs">
                 <tr>
-                  {/* Ajuste nos paddings: px-2 sm:px-4 para espremer menos as colunas */}
-                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest">Produto</th>
-                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest text-center">Estoque</th>
-                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest">Preço</th>
-                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest text-right">Ações</th>
+                  <th className="px-3 sm:px-5 py-4 font-bold tracking-widest">Produto</th>
+                  <th className="px-3 sm:px-5 py-4 font-bold tracking-widest text-center">Estoque</th>
+                  <th className="px-3 sm:px-5 py-4 font-bold tracking-widest">Preço</th>
+                  <th className="px-3 sm:px-5 py-4 font-bold tracking-widest text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {produtos.map(p => (
                   <tr key={p.id} className="hover:bg-white transition-colors bg-white/40">
-                    <td className="px-2 sm:px-4 py-3 sm:py-4 font-bold text-gray-900">
+                    <td className="px-3 sm:px-5 py-4 sm:py-5 font-bold text-gray-900">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-8 h-8 rounded bg-neutral-950 flex items-center justify-center shrink-0 border border-[#DEAE60]/30 shadow-inner hidden sm:flex">
                           <Package className="h-4 w-4 text-[#DEAE60]" />
@@ -175,17 +177,16 @@ const Produtos = () => {
                         <span className="truncate max-w-[100px] sm:max-w-[300px] leading-tight">{p.nome}</span>
                       </div>
                     </td>
-                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-center">
+                    <td className="px-3 sm:px-5 py-4 sm:py-5 text-center">
                       <Badge variant={p.estoque > 5 ? 'outline' : 'destructive'} className={`text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 uppercase tracking-widest ${p.estoque > 5 ? 'bg-green-50 text-green-700 border-green-200' : ''}`}>
                         {p.estoque} <span className="hidden lg:inline ml-1">unid.</span>
                       </Badge>
                     </td>
-                    {/* Classe whitespace-nowrap inserida para travar o R$ na mesma linha */}
-                    <td className="px-2 sm:px-4 py-3 sm:py-4 font-black text-gray-900 text-sm sm:text-base whitespace-nowrap">
+                    <td className="px-3 sm:px-5 py-4 sm:py-5 font-black text-gray-900 text-sm sm:text-base whitespace-nowrap">
                       R$ {(p.preco / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </td>
-                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-right">
-                      {/* BOTÕES DE AÇÕES UNIFICADOS E RESPONSIVOS */}
+                    <td className="px-3 sm:px-5 py-4 sm:py-5 text-right">
+                      {/* BOTÕES DE AÇÕES COM ÍCONES REDUZIDOS (h-3 w-3) */}
                       <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
                         
                         <div className="flex gap-1.5">
@@ -194,7 +195,7 @@ const Produtos = () => {
                             className="h-8 px-2 sm:h-9 sm:px-3 text-[10px] sm:text-xs font-bold border-green-200 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800"
                             onClick={() => openMovDialog(p, 'venda')}
                           >
-                            <ShoppingCart className="h-3.5 w-3.5 sm:mr-1" /> 
+                            <ShoppingCart className="h-3 w-3 sm:mr-1.5" /> 
                             <span className="hidden md:inline">Vender</span>
                           </Button>
                           <Button 
@@ -202,7 +203,7 @@ const Produtos = () => {
                             className="h-8 px-2 sm:h-9 sm:px-3 text-[10px] sm:text-xs font-bold border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800"
                             onClick={() => openMovDialog(p, 'compra')}
                           >
-                            <PackagePlus className="h-3.5 w-3.5 sm:mr-1" /> 
+                            <PackagePlus className="h-3 w-3 sm:mr-1.5" /> 
                             <span className="hidden md:inline">Comprar</span>
                           </Button>
                         </div>
@@ -232,7 +233,7 @@ const Produtos = () => {
         <DialogContent className="sm:max-w-[400px] bg-white border-gray-200">
           <DialogHeader>
             <DialogTitle className={`flex items-center gap-2 text-xl font-bold uppercase tracking-tight ${movType === 'venda' ? 'text-green-600' : 'text-blue-600'}`}>
-              {movType === 'venda' ? <ShoppingCart /> : <PackagePlus />} 
+              {movType === 'venda' ? <ShoppingCart className="h-5 w-5" /> : <PackagePlus className="h-5 w-5" />} 
               {movType === 'venda' ? 'Nova Venda' : 'Entrada de Estoque'}
             </DialogTitle>
           </DialogHeader>

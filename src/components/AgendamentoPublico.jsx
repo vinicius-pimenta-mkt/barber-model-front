@@ -4,11 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { CheckCircle, Calendar, Scissors, User, Clock, CalendarDays } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { CheckCircle, Calendar, User, Clock } from 'lucide-react';
 
 const SERVICOS_TABELA = [
   { nome: 'Barba', preco: 30.00 },
@@ -53,8 +49,8 @@ const AgendamentoPublico = () => {
   const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
 
+  // Monitora mudança de data e barbeiro para buscar horários
   useEffect(() => {
     if (formData.data && formData.barber) {
       buscarHorariosLivres();
@@ -67,10 +63,12 @@ const AgendamentoPublico = () => {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/public/horarios-livres?data=${formData.data}&barber=${formData.barber}`);
       if (res.ok) {
         const data = await res.json();
-        setHorariosLivres(data.horarios);
+        setHorariosLivres(data.horarios || []);
+      } else {
+        console.error("Erro na resposta do backend");
       }
     } catch (error) {
-      console.error('Erro ao buscar horários:', error);
+      console.error('Erro de conexão:', error);
     } finally {
       setLoadingHorarios(false);
     }
@@ -83,10 +81,17 @@ const AgendamentoPublico = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.hora || !formData.servicoObj) return;
+    
     setSalvando(true);
     try {
       const precoEmCentavos = Math.round(formData.servicoObj.preco * 100);
-      const payload = { ...formData, status: 'Pendente', preco: precoEmCentavos, forma_pagamento: 'Pendente' };
+      const payload = { 
+        ...formData, 
+        status: 'Pendente', 
+        preco: precoEmCentavos, 
+        forma_pagamento: 'Pendente' 
+      };
       const endpoint = formData.barber === 'Jhonatas' ? '/api/public/agendar-jhonatas' : '/api/public/agendar-miguel';
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -94,8 +99,9 @@ const AgendamentoPublico = () => {
         body: JSON.stringify(payload),
       });
       if (response.ok) setSucesso(true);
+      else alert("Erro ao salvar agendamento.");
     } catch (error) {
-      alert('Erro de conexão.');
+      alert('Erro de conexão com o servidor.');
     } finally {
       setSalvando(false);
     }
@@ -104,7 +110,7 @@ const AgendamentoPublico = () => {
   if (sucesso) {
     return (
       <div className="min-h-screen flex flex-col relative bg-neutral-950 items-center justify-center p-6">
-        <img src="/fundologin.png" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40" />
+        <img src="/fundologin.png" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40" alt="fundo" />
         <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 backdrop-blur-md z-10 text-center p-8">
           <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Agendamento Realizado!</h2>
@@ -117,13 +123,15 @@ const AgendamentoPublico = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative bg-neutral-950 overflow-x-hidden">
+      {/* IMAGENS DA PASTA PUBLIC */}
       <img src="/fundologin.png" alt="Fundo" className="fixed inset-0 w-full h-full object-cover z-0" />
       <div className="fixed inset-0 bg-neutral-950/40 backdrop-blur-[3px] z-10" />
 
+      {/* CABEÇALHO PADRÃO LOGIN */}
       <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 text-left">
           <img src="/logobranca.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
-          <div className="flex flex-col text-left">
+          <div className="flex flex-col">
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tighter leading-none uppercase">MIGUEL ALVES</h1>
             <span className="text-[10px] sm:text-xs text-purple-300 font-bold uppercase tracking-widest">BARBERSHOP</span>
           </div>
@@ -134,12 +142,12 @@ const AgendamentoPublico = () => {
         <Card className="w-full max-w-lg bg-neutral-900/90 border-neutral-800 shadow-2xl backdrop-blur-md">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter flex items-center justify-center gap-2">
-              <CalendarDays className="text-purple-500 h-6 w-6" /> Agende seu Horário
+              <Calendar className="text-purple-500 h-6 w-6" /> Agende seu Horário
             </CardTitle>
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -172,7 +180,7 @@ const AgendamentoPublico = () => {
                   <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1">Serviço</Label>
                   <Select onValueChange={handleServicoChange} required>
                     <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12">
-                      <SelectValue placeholder="Selecione o serviço" />
+                      <SelectValue placeholder="O que deseja fazer?" />
                     </SelectTrigger>
                     <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
                       {SERVICOS_TABELA.map(s => (
@@ -197,52 +205,30 @@ const AgendamentoPublico = () => {
 
               {formData.servicoObj && (
                 <div className="bg-purple-900/20 border border-purple-500/30 p-4 rounded-xl flex justify-between items-center">
-                  <span className="text-neutral-300 text-[10px] font-bold uppercase tracking-widest">Preço</span>
+                  <span className="text-neutral-300 text-[10px] font-bold uppercase tracking-widest">Valor Estimado</span>
                   <span className="text-white font-black text-xl">R$ {formData.servicoObj.preco.toFixed(2).replace('.', ',')}</span>
                 </div>
               )}
 
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <div className="space-y-2">
-                  <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1">Data do Atendimento</Label>
-                  
-                  {/* CALENDÁRIO VIA POPOVER (ESTILO AGENDA INTERNA) */}
-                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal bg-neutral-950 border-neutral-800 text-white h-12 hover:bg-neutral-900 focus-visible:ring-purple-600"
-                      >
-                        <Calendar className="mr-2 h-4 w-4 text-neutral-500" />
-                        {formData.data ? (
-                          format(new Date(formData.data + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                        ) : (
-                          <span className="text-neutral-500">Clique para escolher a data</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-800" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={formData.data ? new Date(formData.data + 'T12:00:00') : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            setFormData({ ...formData, data: format(date, 'yyyy-MM-dd'), hora: '' });
-                            setCalendarOpen(false);
-                          }
-                        }}
-                        disabled={(date) => date.getDay() === 0 || date.getDay() === 1 || date < new Date(new Date().setHours(0,0,0,0))}
-                        locale={ptBR}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1">Selecione a Data</Label>
+                  {/* CAMPO DE DATA COM SUPORTE PARA TEMA ESCURO (COLOR-SCHEME) */}
+                  <Input 
+                    type="date" 
+                    required 
+                    value={formData.data} 
+                    onChange={e => setFormData({...formData, data: e.target.value, hora: ''})}
+                    className="bg-neutral-950 border-neutral-800 text-white h-12 px-4"
+                    style={{ colorScheme: 'dark' }} 
+                  />
                 </div>
 
+                {/* GRADE DE HORÁRIOS - APARECE QUANDO A DATA É ESCOLHIDA */}
                 {formData.data && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
                     <Label className="text-neutral-300 font-bold uppercase text-[10px] tracking-widest ml-1 flex items-center gap-2">
-                      <Clock className="h-3 w-3" /> Horários Disponíveis
+                      <Clock className="h-3 w-3 text-purple-500" /> Horários Disponíveis
                     </Label>
                     {loadingHorarios ? (
                       <div className="flex justify-center p-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div></div>
@@ -254,7 +240,7 @@ const AgendamentoPublico = () => {
                             onClick={() => setFormData({...formData, hora: h})}
                             className={`p-2 rounded-lg text-xs font-black border transition-all ${
                               formData.hora === h 
-                                ? 'bg-purple-600 text-white border-purple-500 shadow-lg' 
+                                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-900/40 scale-[1.02]' 
                                 : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-purple-500'
                             }`}
                           >
@@ -263,7 +249,7 @@ const AgendamentoPublico = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-red-400 bg-red-950/30 p-3 rounded-lg border border-red-900/30 text-center font-bold">Nenhum horário livre para este dia.</p>
+                      <p className="text-xs text-red-400 bg-red-950/30 p-4 rounded-lg border border-red-900/30 text-center font-bold">Nenhum horário livre para este dia. Tente outra data.</p>
                     )}
                   </div>
                 )}
@@ -272,9 +258,9 @@ const AgendamentoPublico = () => {
               <Button 
                 type="submit" 
                 disabled={salvando || !formData.hora || !formData.servicoObj || !formData.cliente_nome} 
-                className="w-full bg-purple-700 hover:bg-purple-600 text-white h-14 text-lg font-black shadow-xl shadow-purple-950/40 mt-4 uppercase"
+                className="w-full bg-purple-700 hover:bg-purple-600 text-white h-14 text-lg font-black shadow-xl shadow-purple-950/40 mt-4 uppercase tracking-tight"
               >
-                {salvando ? 'Agendando...' : 'Confirmar Horário'}
+                {salvando ? 'Processando...' : 'Confirmar Horário'}
               </Button>
             </form>
           </CardContent>

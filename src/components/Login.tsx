@@ -108,7 +108,8 @@ const Login = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-[#DEAE60]"
+                    // Ajuste da espessura aqui (ring-1)
+                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
                   />
                 </div>
               </div>
@@ -124,7 +125,8 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-[#DEAE60]"
+                    // Ajuste da espessura aqui (ring-1)
+                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
                   />
                 </div>
               </div>

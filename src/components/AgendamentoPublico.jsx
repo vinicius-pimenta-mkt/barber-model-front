@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Calendar, Scissors, User, DollarSign } from 'lucide-react';
-import logo from '../assets/logo.png'; 
+import { CheckCircle, Calendar, Scissors, User, DollarSign, Clock } from 'lucide-react';
 
-// LISTA OFICIAL DE SERVIÇOS E PREÇOS
+// LISTA OFICIAL DE SERVIÇOS E PREÇOS (MANTIDA DO SEU ORIGINAL)
 const SERVICOS_TABELA = [
   { nome: 'Barba', preco: 30.00 },
   { nome: 'Barba + Pézinho', preco: 40.00 },
@@ -37,41 +36,35 @@ const SERVICOS_TABELA = [
 ];
 
 const AgendamentoPublico = () => {
+  const [formData, setFormData] = useState({
+    cliente_nome: '',
+    cliente_telefone: '',
+    servico: '',
+    servicoObj: null,
+    data: '',
+    hora: '',
+    barber: 'Miguel'
+  });
+
   const [horariosLivres, setHorariosLivres] = useState([]);
   const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
 
-  const [formData, setFormData] = useState({
-    barbeiro: 'Miguel',
-    cliente_nome: '',
-    cliente_telefone: '',
-    servicoObj: null, 
-    data: '',
-    hora: '',
-    forma_pagamento: 'Dinheiro'
-  });
-
-  // CORREÇÃO: Adicionamos o servicoObj aqui para recalcular se o cliente trocar o serviço
+  // BUSCA HORÁRIOS QUANDO DATA OU BARBEIRO MUDA
   useEffect(() => {
-    if (formData.data && formData.barbeiro && formData.servicoObj) {
-      buscarHorarios();
+    if (formData.data && formData.barber) {
+      buscarHorariosLivres();
     }
-  }, [formData.data, formData.barbeiro, formData.servicoObj]);
+  }, [formData.data, formData.barber]);
 
-  const buscarHorarios = async () => {
+  const buscarHorariosLivres = async () => {
     setLoadingHorarios(true);
-    setFormData(prev => ({ ...prev, hora: '' })); 
     try {
-      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
-      
-      // CORREÇÃO: Agora enviamos o serviço na URL para o backend calcular o tempo exato!
-      const url = `${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/disponibilidade?data=${formData.data}&servico=${encodeURIComponent(formData.servicoObj.nome)}`;
-      
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setHorariosLivres(data.livres || []);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/public/horarios-livres?data=${formData.data}&barber=${formData.barber}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHorariosLivres(data.horarios);
       }
     } catch (error) {
       console.error('Erro ao buscar horários:', error);
@@ -80,179 +73,225 @@ const AgendamentoPublico = () => {
     }
   };
 
+  const handleServicoChange = (valor) => {
+    const servicoSelecionado = SERVICOS_TABELA.find(s => s.nome === valor);
+    setFormData({
+      ...formData,
+      servico: valor,
+      servicoObj: servicoSelecionado
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
+
     try {
-      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
-      
+      const precoEmCentavos = Math.round(formData.servicoObj.preco * 100);
       const payload = {
-        cliente_nome: formData.cliente_nome,
-        cliente_telefone: formData.cliente_telefone,
-        servico: formData.servicoObj.nome,
-        preco: formData.servicoObj.preco,
-        data: formData.data,
-        hora: formData.hora,
-        forma_pagamento: formData.forma_pagamento,
-        status: 'Pendente' 
+        ...formData,
+        status: 'Pendente',
+        preco: precoEmCentavos,
+        forma_pagamento: 'Pendente'
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}`, {
+      const endpoint = formData.barber === 'Jhonatas' ? '/api/public/agendar-jhonatas' : '/api/public/agendar-miguel';
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         setSucesso(true);
       } else {
-        alert('Ops! Alguém acabou de reservar esse horário. Por favor, escolha outro.');
-        buscarHorarios();
+        const err = await response.json();
+        alert(err.error || 'Erro ao realizar agendamento.');
       }
     } catch (error) {
-      alert('Erro ao agendar. Tente novamente.');
+      alert('Erro de conexão.');
     } finally {
       setSalvando(false);
     }
   };
 
-  const hojeStr = new Date().toISOString().split('T')[0];
-
   if (sucesso) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center py-12 shadow-xl border-t-4 border-t-green-500">
-          <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Agendamento Confirmado!</h2>
-          <p className="text-gray-600 mb-6 px-4">Sua vaga está garantida. Te esperamos no dia {formData.data.split('-').reverse().join('/')} às {formData.hora}.</p>
-          <Button onClick={() => window.location.reload()} variant="outline" className="w-full max-w-xs mx-auto border-amber-600 text-amber-600 hover:bg-amber-50">
-            Fazer outro agendamento
-          </Button>
+      <div className="min-h-screen flex flex-col relative bg-neutral-950 items-center justify-center p-6">
+        <img src="/fundologin.png" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40" />
+        <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 backdrop-blur-md z-10 text-center p-8">
+          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Agendamento Realizado!</h2>
+          <p className="text-neutral-400 mt-2">Tudo certo, {formData.cliente_nome}. Te esperamos na barbearia!</p>
+          <Button onClick={() => window.location.reload()} className="mt-8 bg-purple-700 hover:bg-purple-600 w-full font-bold">Fazer outro agendamento</Button>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 py-8">
-      <Card className="max-w-lg w-full shadow-2xl overflow-hidden border-0">
-        
-        <div className="bg-white p-6 pb-8 flex flex-col items-center justify-center border-b-4 border-amber-600 text-center">
-          <img src={logo} alt="Miguel Alves" className="h-40 mb-8 drop-shadow-sm" />
-          <h1 className="text-2xl font-black text-gray-900 uppercase tracking-widest leading-tight">
-            Miguel Alves<br/>Barbershop
-          </h1>
-          <p className="text-gray-500 font-medium mt-2 tracking-wide">
-            Agende seu horário
-          </p>
+    <div className="min-h-screen flex flex-col relative bg-neutral-950 overflow-x-hidden">
+      
+      {/* IMAGEM DE FUNDO (PASTA PUBLIC) */}
+      <img src="/fundologin.png" alt="Fundo" className="fixed inset-0 w-full h-full object-cover z-0" />
+
+      {/* PELÍCULA COM TRANSPARÊNCIA E BLUR */}
+      <div className="fixed inset-0 bg-neutral-950/40 backdrop-blur-[3px] z-10" />
+
+      {/* CABEÇALHO - ESTILO LOGIN */}
+      <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-purple-900/30 flex items-center justify-between z-20 relative">
+        <div className="flex items-center gap-3">
+          <img src="/logobranca.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
+          <div className="flex flex-col text-left">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tighter leading-none uppercase">MIGUEL ALVES</h1>
+            <span className="text-[10px] sm:text-xs text-purple-300 font-bold uppercase tracking-widest">BARBERSHOP</span>
+          </div>
         </div>
+      </header>
 
-        <CardContent className="p-6 bg-white">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            
-            <div className="space-y-3">
-              <Label className="text-gray-500 font-bold flex items-center gap-2"><User className="h-4 w-4 text-amber-600"/> 1. Escolha o Profissional</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <Button type="button" variant={formData.barbeiro === 'Miguel' ? 'default' : 'outline'} className={formData.barbeiro === 'Miguel' ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold' : 'font-bold text-gray-600'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
-                  Miguel
-                </Button>
-                <Button type="button" variant={formData.barbeiro === 'Jhonatas' ? 'default' : 'outline'} className={formData.barbeiro === 'Jhonatas' ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold' : 'font-bold text-gray-600'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
-                  Jhonatas
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <Label className="text-gray-500 font-bold flex items-center gap-2"><User className="h-4 w-4 text-amber-600"/> 2. Seus Dados</Label>
-              <Input required placeholder="Seu Nome Completo" value={formData.cliente_nome} onChange={e => setFormData({...formData, cliente_nome: e.target.value})} className="bg-gray-50 border-gray-200" />
-              <Input required placeholder="Telefone / WhatsApp" value={formData.cliente_telefone} onChange={e => setFormData({...formData, cliente_telefone: e.target.value})} className="bg-gray-50 border-gray-200" />
-            </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <Label className="text-gray-500 font-bold flex items-center gap-2"><Scissors className="h-4 w-4 text-amber-600"/> 3. Serviço</Label>
+      {/* CONTEÚDO DO FORMULÁRIO */}
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 z-20 relative">
+        <Card className="w-full max-w-lg bg-neutral-900/90 border-neutral-800 shadow-2xl backdrop-blur-md">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter flex items-center justify-center gap-2">
+              <Calendar className="text-purple-500 h-6 w-6" /> Agende seu Horário
+            </CardTitle>
+            <p className="text-sm text-neutral-400">Escolha o serviço, barbeiro e data desejada</p>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-5">
               
-              <Select required onValueChange={(nomeServico) => {
-                const servicoEncontrado = SERVICOS_TABELA.find(s => s.nome === nomeServico);
-                setFormData({...formData, servicoObj: servicoEncontrado});
-              }}>
-                <SelectTrigger className="bg-gray-50 border-gray-200">
-                  <SelectValue placeholder="Selecione o Serviço" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SERVICOS_TABELA.map((s) => (
-                    <SelectItem key={s.nome} value={s.nome}>
-                      {s.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="grid grid-cols-2 gap-3">
+              {/* NOME E TELEFONE */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-500 font-bold">Valor (R$)</Label>
+                  <Label className="text-neutral-300 font-bold uppercase text-[11px] tracking-widest ml-1">Seu Nome</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                     <Input 
-                      readOnly 
-                      value={formData.servicoObj ? formData.servicoObj.preco.toFixed(2).replace('.', ',') : '0,00'} 
-                      className="bg-gray-100/50 text-gray-700 font-black pl-9 border-gray-200 cursor-not-allowed" 
+                      required 
+                      value={formData.cliente_nome} 
+                      onChange={e => setFormData({...formData, cliente_nome: e.target.value})}
+                      placeholder="Nome completo"
+                      className="bg-neutral-950 border-neutral-800 text-white pl-10 h-12 focus-visible:ring-purple-600"
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-500 font-bold">Pagamento</Label>
-                  <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                    <SelectTrigger className="bg-gray-50 border-gray-200"><SelectValue placeholder="Forma" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                      <SelectItem value="Pix">Pix</SelectItem>
-                      <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
-                      <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                  <Label className="text-neutral-300 font-bold uppercase text-[11px] tracking-widest ml-1">Telefone</Label>
+                  <Input 
+                    required 
+                    value={formData.cliente_telefone} 
+                    onChange={e => setFormData({...formData, cliente_telefone: e.target.value})}
+                    placeholder="(00) 00000-0000"
+                    className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-purple-600"
+                  />
+                </div>
+              </div>
+
+              {/* SERVIÇO E BARBEIRO */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-neutral-300 font-bold uppercase text-[11px] tracking-widest ml-1">Serviço</Label>
+                  <Select onValueChange={handleServicoChange} required>
+                    <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12">
+                      <SelectValue placeholder="O que vamos fazer?" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
+                      {SERVICOS_TABELA.map(s => (
+                        <SelectItem key={s.nome} value={s.nome}>{s.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-neutral-300 font-bold uppercase text-[11px] tracking-widest ml-1">Barbeiro</Label>
+                  <Select 
+                    value={formData.barber} 
+                    onValueChange={v => setFormData({...formData, barber: v, data: '', hora: ''})}
+                  >
+                    <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
+                      <SelectItem value="Miguel">Miguel</SelectItem>
+                      <SelectItem value="Jhonatas">Jhonatas</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <Label className="text-gray-500 font-bold flex items-center gap-2"><Calendar className="h-4 w-4 text-amber-600"/> 4. Data e Hora</Label>
-              <Input required type="date" min={hojeStr} value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} className="bg-gray-50 border-gray-200" />
-              
-              {formData.data && (
-                <div className="pt-2">
-                  <Label className="text-xs text-gray-500 mb-2 block font-bold">Horários Disponíveis:</Label>
-                  {loadingHorarios ? (
-                    <div className="text-sm text-amber-600 animate-pulse font-medium">Buscando agenda livre...</div>
+              {/* EXIBIÇÃO DE PREÇO DINÂMICO */}
+              {formData.servicoObj && (
+                <div className="bg-purple-900/20 border border-purple-500/30 p-4 rounded-xl flex justify-between items-center">
+                  <span className="text-neutral-300 text-xs font-bold uppercase tracking-widest">Valor do Serviço</span>
+                  <span className="text-white font-black text-xl">R$ {formData.servicoObj.preco.toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+
+              {/* DATA E HORA */}
+              <div className="space-y-4 pt-2 border-t border-neutral-800">
+                <div className="space-y-2">
+                  <Label className="text-neutral-300 font-bold uppercase text-[11px] tracking-widest ml-1">Data do Atendimento</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                    <Input 
+                      type="date" 
+                      required 
+                      value={formData.data} 
+                      onChange={e => setFormData({...formData, data: e.target.value, hora: ''})}
+                      className="bg-neutral-950 border-neutral-800 text-white pl-10 h-12"
+                    />
+                  </div>
+                </div>
+
+                {/* GRADE DE HORÁRIOS */}
+                <div className="space-y-2">
+                  <Label className="text-neutral-300 font-bold uppercase text-[11px] tracking-widest ml-1 flex items-center gap-2">
+                    <Clock className="h-3 w-3" /> Horários Disponíveis
+                  </Label>
+                  {!formData.data ? (
+                    <p className="text-[10px] text-neutral-500 italic bg-neutral-950/50 p-3 rounded-lg text-center">Selecione uma data para ver os horários</p>
+                  ) : loadingHorarios ? (
+                    <div className="flex justify-center p-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div></div>
                   ) : horariosLivres.length > 0 ? (
                     <div className="grid grid-cols-4 gap-2">
                       {horariosLivres.map(h => (
                         <button
                           key={h} type="button"
                           onClick={() => setFormData({...formData, hora: h})}
-                          className={`p-2 rounded-lg text-sm font-bold border transition-all ${formData.hora === h ? 'bg-amber-600 text-white border-amber-600 shadow-md' : 'bg-white text-gray-700 border-gray-200 hover:border-amber-600'}`}
+                          className={`p-2 rounded-lg text-xs font-black border transition-all ${
+                            formData.hora === h 
+                              ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-900/40' 
+                              : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-purple-500'
+                          }`}
                         >
                           {h}
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 font-medium">Nenhum horário livre para este dia. Selecione outra data.</div>
+                    <p className="text-xs text-red-400 bg-red-950/30 p-3 rounded-lg border border-red-900/30 text-center font-bold">Nenhum horário livre para este dia.</p>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            <Button 
-              type="submit" 
-              disabled={salvando || !formData.hora || !formData.servicoObj || !formData.cliente_nome} 
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white h-14 text-lg font-bold shadow-lg mt-6 uppercase tracking-wide"
-            >
-              {salvando ? 'Confirmando...' : 'Confirmar Agendamento'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button 
+                type="submit" 
+                disabled={salvando || !formData.hora || !formData.servicoObj} 
+                className="w-full bg-purple-700 hover:bg-purple-600 text-white h-14 text-lg font-black shadow-xl shadow-purple-950/40 mt-4 uppercase tracking-tighter"
+              >
+                {salvando ? 'Processando...' : 'Confirmar Agendamento'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+        
+        <p className="mt-8 text-center text-[10px] text-neutral-500 uppercase tracking-widest">
+          Desenvolvido por UNV Tech | Agendamento Online v1.0
+        </p>
+      </main>
     </div>
   );
 };

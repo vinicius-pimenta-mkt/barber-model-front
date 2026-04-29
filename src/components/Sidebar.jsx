@@ -57,7 +57,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
               <img src="/logobranca.png" alt="Logo" className="h-10 w-auto" />
               <div>
                 <h2 className="text-lg font-black text-white leading-none uppercase tracking-tighter">Miguel Alves</h2>
-                <p className="text-[10px] text-purple-400 font-bold uppercase tracking-widest mt-1">Barbershop</p>
+                <p className="text-[10px] text-[#DEAE60] font-bold uppercase tracking-widest mt-1">Barbershop</p>
               </div>
             </div>
           </div>
@@ -73,11 +73,11 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
                   onClick={() => handleMenuItemClick(item.id)}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${
                     isActive 
-                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' 
+                      ? 'bg-[#DEAE60] text-neutral-950 shadow-lg shadow-black/30 font-bold' 
                       : 'text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100'
                   }`}
                 >
-                  <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-neutral-500'}`} />
+                  <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-neutral-950' : 'text-neutral-500'}`} />
                   {item.label}
                 </button>
               );
@@ -87,13 +87,13 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
           {/* User & Logout */}
           <div className="p-4 border-t border-neutral-800">
             <div className="flex items-center space-x-3 mb-4 px-2">
-              <div className="w-9 h-9 bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-700">
-                <span className="text-purple-400 font-bold text-xs uppercase">
+              <div className="w-9 h-9 bg-neutral-950 rounded-full flex items-center justify-center border border-[#DEAE60]/30 shadow-inner">
+                <span className="text-[#DEAE60] font-bold text-xs uppercase">
                   {isJhonatas ? 'J' : 'MA'}
                 </span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate uppercase">
+                <p className="text-sm font-bold text-white truncate uppercase tracking-tighter">
                   {isJhonatas ? 'Jhonatas' : 'Miguel Alves'}
                 </p>
                 <p className="text-[10px] text-neutral-500 font-medium">

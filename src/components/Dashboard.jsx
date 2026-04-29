@@ -28,21 +28,19 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   return (
-    // 1. Container com position relative e overflow hidden
     <div className="flex h-screen relative overflow-hidden bg-neutral-950">
       
-      {/* 2. A IMAGEM DE FUNDO (A mesma do Login) */}
+      {/* IMAGEM DE FUNDO (A mesma do Login) */}
       <img 
         src="/fundologin.png" 
         alt="Fundo Dashboard" 
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
-      {/* 3. CAMADA DE CINZA 30% COM 25% DE TRANSPARÊNCIA */}
-      {/* bg-gray-500 representa o cinza e /25 representa a opacidade */}
+      {/* CAMADA DE CINZA COM TRANSPARÊNCIA */}
       <div className="absolute inset-0 bg-gray-500/25 z-0" />
 
-      {/* 4. CONTEÚDO PRINCIPAL (Z-10 para ficar em cima do fundo) */}
+      {/* CONTEÚDO PRINCIPAL (Z-10 para ficar em cima do fundo) */}
       <div className="flex w-full h-full relative z-10">
         <Sidebar 
           activeSection={activeSection}

@@ -96,7 +96,8 @@ const Produtos = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    // pt-8 para mobile e pt-4 para desktop (descola do topo)
+    <div className="space-y-6 animate-in fade-in duration-500 pt-8 sm:pt-4">
       
       {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -156,43 +157,45 @@ const Produtos = () => {
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50/50 text-gray-500 uppercase text-[10px] sm:text-xs">
                 <tr>
-                  <th className="px-3 sm:px-6 py-4 font-bold tracking-widest">Produto</th>
-                  <th className="px-3 sm:px-6 py-4 font-bold tracking-widest text-center">Estoque</th>
-                  <th className="px-3 sm:px-6 py-4 font-bold tracking-widest">Preço</th>
-                  <th className="px-3 sm:px-6 py-4 font-bold tracking-widest text-right">Ações</th>
+                  {/* Ajuste nos paddings: px-2 sm:px-4 para espremer menos as colunas */}
+                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest">Produto</th>
+                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest text-center">Estoque</th>
+                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest">Preço</th>
+                  <th className="px-2 sm:px-4 py-3 font-bold tracking-widest text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {produtos.map(p => (
                   <tr key={p.id} className="hover:bg-white transition-colors bg-white/40">
-                    <td className="px-3 sm:px-6 py-4 font-bold text-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-neutral-950 flex items-center justify-center shrink-0 border border-[#DEAE60]/30 shadow-inner">
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 font-bold text-gray-900">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 rounded bg-neutral-950 flex items-center justify-center shrink-0 border border-[#DEAE60]/30 shadow-inner hidden sm:flex">
                           <Package className="h-4 w-4 text-[#DEAE60]" />
                         </div>
-                        <span className="truncate max-w-[120px] sm:max-w-[300px]">{p.nome}</span>
+                        <span className="truncate max-w-[100px] sm:max-w-[300px] leading-tight">{p.nome}</span>
                       </div>
                     </td>
-                    <td className="px-3 sm:px-6 py-4 text-center">
-                      <Badge variant={p.estoque > 5 ? 'outline' : 'destructive'} className={`text-[10px] sm:text-xs px-2 py-1 uppercase tracking-widest ${p.estoque > 5 ? 'bg-green-50 text-green-700 border-green-200' : ''}`}>
-                        {p.estoque} <span className="hidden sm:inline ml-1">unid.</span>
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-center">
+                      <Badge variant={p.estoque > 5 ? 'outline' : 'destructive'} className={`text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 uppercase tracking-widest ${p.estoque > 5 ? 'bg-green-50 text-green-700 border-green-200' : ''}`}>
+                        {p.estoque} <span className="hidden lg:inline ml-1">unid.</span>
                       </Badge>
                     </td>
-                    <td className="px-3 sm:px-6 py-4 font-black text-gray-900 text-sm sm:text-base">
+                    {/* Classe whitespace-nowrap inserida para travar o R$ na mesma linha */}
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 font-black text-gray-900 text-sm sm:text-base whitespace-nowrap">
                       R$ {(p.preco / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </td>
-                    <td className="px-3 sm:px-6 py-4 text-right">
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-right">
                       {/* BOTÕES DE AÇÕES UNIFICADOS E RESPONSIVOS */}
-                      <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
                         
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                           <Button 
                             variant="outline" 
                             className="h-8 px-2 sm:h-9 sm:px-3 text-[10px] sm:text-xs font-bold border-green-200 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800"
                             onClick={() => openMovDialog(p, 'venda')}
                           >
                             <ShoppingCart className="h-3.5 w-3.5 sm:mr-1" /> 
-                            <span className="hidden sm:inline">Vender</span>
+                            <span className="hidden md:inline">Vender</span>
                           </Button>
                           <Button 
                             variant="outline" 
@@ -200,11 +203,11 @@ const Produtos = () => {
                             onClick={() => openMovDialog(p, 'compra')}
                           >
                             <PackagePlus className="h-3.5 w-3.5 sm:mr-1" /> 
-                            <span className="hidden sm:inline">Comprar</span>
+                            <span className="hidden md:inline">Comprar</span>
                           </Button>
                         </div>
 
-                        <div className="flex items-center gap-1 mt-2 sm:mt-0 ml-0 sm:ml-2 pl-0 sm:pl-2 sm:border-l border-gray-200">
+                        <div className="flex items-center gap-1 mt-1 sm:mt-0 sm:ml-2 sm:pl-2 sm:border-l border-gray-200">
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-[#DEAE60] hover:bg-[#DEAE60]/10 hover:text-[#DEAE60]" onClick={() => { setProdutoEdit(p); setFormData({ nome: p.nome, preco: (p.preco/100).toString().replace('.',',')}); setDialogOpen(true); }}>
                             <Edit className="h-4 w-4" />
                           </Button>

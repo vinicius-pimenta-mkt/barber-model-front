@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 
 const Clientes = ({ user }) => {
-  // ATUALIZADO PARA O NOVO SISTEMA: Verifica se é o Jhonatas
   const isJhonatas = user?.role === 'jhonatas';
   
   const [clientes, setClientes] = useState([]);
@@ -137,70 +136,74 @@ const Clientes = ({ user }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DEAE60]"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      
       {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
-          <p className="text-gray-600">Gerencie os clientes da barbearia</p>
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Clientes</h1>
+          <p className="text-neutral-400">Gerencie os clientes da barbearia</p>
         </div>
         
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700">
+            <Button onClick={resetForm} className="w-full sm:w-auto bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold shadow-lg shadow-black/20">
               <Plus className="h-4 w-4 mr-2" />
               Novo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] bg-white border-gray-200">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">
                 {editingCliente ? 'Editar Cliente' : 'Novo Cliente'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome Completo</Label>
+                <Label htmlFor="nome" className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Nome Completo</Label>
                 <Input
                   id="nome"
                   value={formData.nome}
                   onChange={(e) => setFormData({...formData, nome: e.target.value})}
                   required
+                  className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
+                <Label htmlFor="telefone" className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone</Label>
                 <Input
                   id="telefone"
                   value={formData.telefone}
                   onChange={(e) => setFormData({...formData, telefone: e.target.value})}
-                  placeholder="(11) 99999-9999"
+                  placeholder="(00) 00000-0000"
+                  className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email" className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   placeholder="cliente@email.com"
+                  className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                 />
               </div>
               
-              <div className="flex justify-end space-x-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <div className="flex justify-end space-x-2 pt-4 border-t border-gray-100">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="bg-white border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-amber-600 hover:bg-amber-700">
+                <Button type="submit" className="bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">
                   {editingCliente ? 'Atualizar' : 'Criar'}
                 </Button>
               </div>
@@ -209,7 +212,8 @@ const Clientes = ({ user }) => {
         </Dialog>
       </div>
 
-      <Card>
+      {/* BARRA DE PESQUISA (BRANCO COM VIDRO FOSCO) */}
+      <Card className="bg-white/90 backdrop-blur-md border-white/40 shadow-xl overflow-hidden">
         <CardContent className="pt-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -217,31 +221,34 @@ const Clientes = ({ user }) => {
               placeholder="Pesquisar clientes por nome, telefone ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white/60 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60] placeholder:text-gray-400"
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Users className="h-5 w-5 text-amber-600" />
+      {/* LISTA DE CLIENTES (BRANCO COM VIDRO FOSCO) */}
+      <Card className="bg-white/90 backdrop-blur-md border-white/40 shadow-xl overflow-hidden">
+        <CardHeader className="border-b border-gray-200/50 bg-white/50">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold uppercase tracking-tight text-gray-900">
+            <Users className="h-5 w-5 text-[#DEAE60]" />
             Lista de Clientes ({filteredClientes.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
           {filteredClientes.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">
+            <p className="text-center text-gray-500 py-8 font-medium">
               {searchTerm ? 'Nenhum cliente encontrado para a pesquisa' : 'Nenhum cliente cadastrado'}
             </p>
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {filteredClientes.map((cliente) => (
-                <div key={cliente.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <div key={cliente.id} className="flex items-center justify-between p-3 sm:p-4 bg-white/60 hover:bg-white/80 border border-gray-100 shadow-sm rounded-xl transition-all">
                   <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                      <span className="text-purple-600 font-semibold text-sm sm:text-base">
+                    
+                    {/* AVATAR DOURADO */}
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-neutral-950 rounded-full flex items-center justify-center shrink-0 border border-[#DEAE60]/30 shadow-inner">
+                      <span className="text-[#DEAE60] font-black text-sm sm:text-base uppercase">
                         {cliente.nome?.charAt(0) || 'C'}
                       </span>
                     </div>
@@ -249,23 +256,22 @@ const Clientes = ({ user }) => {
                     <div className="min-w-0 flex-1">
                       <h3 className="font-bold text-gray-900 truncate text-sm sm:text-base">{cliente.nome}</h3>
                       
-                      {/* INFOS DE CONTATO RESPONSIVAS */}
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
                         {cliente.telefone && (
-                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                            <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-1 shrink-0 text-amber-600" />
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600 font-medium">
+                            <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-[#DEAE60]" />
                             <span className="whitespace-nowrap">{cliente.telefone}</span>
                           </div>
                         )}
                         {cliente.email && (
-                          <div className="flex items-center text-xs sm:text-sm text-gray-600 break-all">
-                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 shrink-0 text-amber-600" />
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600 font-medium break-all">
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-[#DEAE60]" />
                             <span className="leading-tight">{cliente.email}</span>
                           </div>
                         )}
                       </div>
 
-                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-1.5">
+                      <p className="text-[10px] sm:text-[11px] text-gray-400 mt-2 font-medium uppercase tracking-widest">
                         Cadastrado em {new Date(cliente.created_at).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
@@ -275,19 +281,19 @@ const Clientes = ({ user }) => {
                   <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 ml-2">
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="h-7 w-7 sm:h-9 sm:w-auto px-0 sm:px-3"
+                      variant="ghost"
+                      className="h-8 w-8 sm:h-9 sm:w-9 px-0 text-[#DEAE60] hover:bg-[#DEAE60]/10 hover:text-[#DEAE60] rounded-full"
                       onClick={() => openEditDialog(cliente)}
                     >
-                      <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+                      <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="h-7 w-7 sm:h-9 sm:w-auto px-0 sm:px-3 text-red-600 hover:text-red-700"
+                      variant="ghost"
+                      className="h-8 w-8 sm:h-9 sm:w-9 px-0 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-full"
                       onClick={() => handleDelete(cliente.id)}
                     >
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                   )}

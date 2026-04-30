@@ -9,7 +9,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
+  DialogFooter
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -34,13 +35,30 @@ import {
   CalendarDays,
   User,
   Phone,
-  Lock
+  Lock,
+  Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Agenda = ({ user }) => {
   const isJhonatas = user?.role === 'jhonatas';
+
+  // --- LÓGICA DO NOME DINÂMICO ---
+  const [barberTwoName, setBarberTwoName] = useState(localStorage.getItem('barberTwoName') || 'Jhonatas');
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
+  const [tempName, setTempName] = useState(barberTwoName);
+
+  const handleSaveName = () => {
+    if (tempName.trim() === '') return;
+    localStorage.setItem('barberTwoName', tempName.trim());
+    setBarberTwoName(tempName.trim());
+    setNameDialogOpen(false);
+    // Recarrega a página para atualizar todo o sistema
+    window.location.reload(); 
+  };
+  // --------------------------------
+
   const [agendamentos, setAgendamentos] = useState([]);
   const [clientes, setClientes] = useState([]); 
   const [filteredClientes, setFilteredClientes] = useState([]); 
@@ -63,7 +81,7 @@ const Agenda = ({ user }) => {
     preco: '',
     forma_pagamento: 'Dinheiro',
     observacoes: '',
-    barber: isJhonatas ? 'Jhonatas' : 'Miguel'
+    barber: isJhonatas ? 'Jhonatas' : 'Miguel' // No banco, continuará salvando como Jhonatas
   });
 
   const [blockData, setBlockData] = useState({
@@ -446,43 +464,46 @@ const Agenda = ({ user }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Confirmado': return 'bg-green-950/50 text-green-400 border-green-900/50';
-      case 'Pendente':   return 'bg-yellow-950/50 text-yellow-400 border-yellow-900/50';
-      case 'Cancelado':  return 'bg-red-950/50 text-red-400 border-red-900/50';
-      case 'Bloqueado':  return 'bg-neutral-800 text-neutral-400 border-neutral-700';
-      default:           return 'bg-neutral-800 text-neutral-400 border-neutral-700';
+      case 'Confirmado': return 'bg-green-100 text-green-800 border-green-200';
+      case 'Pendente':   return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Cancelado':  return 'bg-red-100 text-red-800 border-red-200';
+      case 'Bloqueado':  return 'bg-gray-100 text-gray-800 border-gray-300';
+      default:           return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Confirmado': return <CheckCircle className="h-4 w-4" />;
-      case 'Pendente':   return <Clock className="h-4 w-4" />;
-      case 'Cancelado':  return <AlertCircle className="h-4 w-4" />;
-      case 'Bloqueado':  return <Lock className="h-4 w-4" />;
-      default:           return <Clock className="h-4 w-4" />;
+      case 'Confirmado': return <CheckCircle className="h-3 w-3" />;
+      case 'Pendente':   return <Clock className="h-3 w-3" />;
+      case 'Cancelado':  return <AlertCircle className="h-3 w-3" />;
+      case 'Bloqueado':  return <Lock className="h-3 w-3" />;
+      default:           return <Clock className="h-3 w-3" />;
     }
   };
 
-  const renderTable = (barbeiroNome) => {
+  const renderTable = (barbeiroKey) => {
+    const isBarbeiro2 = barbeiroKey === 'Jhonatas';
+    const displayNome = isBarbeiro2 ? barberTwoName : barbeiroKey;
+
     const filtrados = agendamentos.filter(a => {
-      const matchBarber = a.barber === barbeiroNome;
+      const matchBarber = a.barber === barbeiroKey;
       const matchDate = selectedDate ? a.data === format(selectedDate, 'yyyy-MM-dd') : true;
       return matchBarber && matchDate;
     }).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
-      <Card className="flex-1 bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
-        <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
-          <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
-            <User className={`h-5 w-5 ${barbeiroNome === 'Jhonatas' ? 'text-neutral-400' : 'text-[#DEAE60]'}`} />
-            Agenda: {barbeiroNome}
+      <Card className="flex-1 shadow-sm">
+        <CardHeader className={`${barbeiroKey === 'Miguel' ? 'bg-amber-50/50' : 'bg-green-50/50'} border-b`}>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <User className={`h-5 w-5 ${barbeiroKey === 'Jhonatas' ? 'text-amber-600' : 'text-green-600'}`} />
+            Agenda: {displayNome}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-neutral-400 uppercase bg-neutral-950/50">
+              <thead className="text-xs text-gray-500 uppercase bg-gray-50/50">
                 <tr>
                   <th className="px-4 py-3">Hora</th>
                   <th className="px-4 py-3">Cliente</th>
@@ -492,37 +513,37 @@ const Agenda = ({ user }) => {
                   <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-800">
+              <tbody className="divide-y divide-gray-100">
                 {filtrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-4 py-12 text-center text-neutral-500 italic">
+                    <td colSpan="6" className="px-4 py-12 text-center text-gray-400 italic">
                       Nenhum agendamento para este dia.
                     </td>
                   </tr>
                 ) : (
                   filtrados.map((a) => (
-                    <tr key={a.id} className={`hover:bg-white/5 transition-colors ${a.status === 'Bloqueado' ? 'bg-neutral-950/30 opacity-60' : ''}`}>
-                      <td className="px-4 py-3 font-black text-white">{a.hora.substring(0, 5)}</td>
+                    <tr key={a.id} className={`hover:bg-gray-50 transition-colors ${a.status === 'Bloqueado' ? 'bg-gray-100 opacity-80' : ''}`}>
+                      <td className="px-4 py-3 font-bold text-gray-900">{a.hora.substring(0, 5)}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col">
-                          <span className={`font-bold ${a.status === 'Bloqueado' ? 'text-neutral-500' : 'text-neutral-100'}`}>{a.cliente_nome}</span>
+                          <span className={`font-medium ${a.status === 'Bloqueado' ? 'text-gray-500' : 'text-gray-700'}`}>{a.cliente_nome}</span>
                           {a.status !== 'Bloqueado' && (
-                            <span className="text-[10px] text-neutral-400 flex items-center gap-1 mt-0.5">
-                              <Phone className="h-2 w-2 text-[#DEAE60]" /> {a.cliente_telefone || 'Sem tel.'}
+                            <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                              <Phone className="h-2 w-2" /> {a.cliente_telefone || 'Sem tel.'}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-neutral-300">{a.servico}</td>
+                      <td className="px-4 py-3 text-gray-600">{a.servico}</td>
                       <td className="px-4 py-3">
                         {a.status !== 'Bloqueado' ? (
-                           <span className="text-[10px] bg-neutral-800 border border-neutral-700 px-2 py-1 rounded-full text-neutral-300 font-medium">
+                           <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
                              {a.forma_pagamento || 'Não def.'}
                            </span>
                         ) : '-'}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant="outline" className={`${getStatusColor(a.status)} text-[10px] uppercase tracking-widest`}>
+                        <Badge variant="outline" className={`${getStatusColor(a.status)} font-normal text-[10px]`}>
                           <span className="flex items-center gap-1">
                             {getStatusIcon(a.status)}
                             {a.status}
@@ -531,11 +552,11 @@ const Agenda = ({ user }) => {
                       </td>
                       <td className="px-4 py-3 text-right space-x-1">
                         {a.status !== 'Bloqueado' && (
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} className="h-8 w-8 text-[#DEAE60] hover:bg-neutral-800 hover:text-[#DEAE60]">
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} className="h-8 w-8 text-blue-600">
                             <Edit className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(a)} className="h-8 w-8 text-red-400 hover:bg-red-950/50 hover:text-red-300">
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(a)} className="h-8 w-8 text-red-600">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </td>
@@ -551,26 +572,53 @@ const Agenda = ({ user }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pt-8 sm:pt-4">
-      
+    <div className="space-y-6 pt-8 sm:pt-4">
       {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Agenda de Atendimentos</h1>
-          <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gerencie os horários da barbearia</p>
+        
+        {/* TÍTULO E BOTÃO DE CONFIGURAÇÃO DE NOME */}
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Agenda de Atendimentos</h1>
+            <p className="text-gray-600 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gerencie os horários da barbearia</p>
+          </div>
+          
+          {!isJhonatas && (
+            <Dialog open={nameDialogOpen} onOpenChange={setNameDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600" title="Configurar Nome do Barbeiro 2">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-bold text-gray-900 uppercase tracking-tighter">Alterar Nome do Barbeiro Secundário</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 space-y-3">
+                  <p className="text-xs text-gray-500">Este nome substituirá visualmente o nome "Jhonatas" em todas as telas do sistema para você.</p>
+                  <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Nome de Exibição</Label>
+                  <Input value={tempName} onChange={(e) => setTempName(e.target.value)} />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setNameDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleSaveName} className="bg-amber-600 hover:bg-amber-700 text-white">Salvar Nome</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          {/* Filtro de data (Tema Claro) */}
+          {/* Filtro de data mantido no topo no mobile */}
           <div className="w-full sm:w-auto">
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto bg-neutral-900/60 border-neutral-800 text-white hover:bg-neutral-800 flex justify-center backdrop-blur-md">
-                  <CalendarDays className="h-4 w-4 mr-2 text-[#DEAE60]" />
+                <Button variant="outline" className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 flex justify-center">
+                  <CalendarDays className="h-4 w-4 mr-2 text-amber-600" />
                   {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "Filtrar Data"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white border-gray-200" align="end">
+              <PopoverContent className="w-auto p-0" align="end">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
@@ -583,61 +631,60 @@ const Agenda = ({ user }) => {
                   disabled={(date) => date.getDay() === 0 || date.getDay() === 1}
                   locale={ptBR}
                   initialFocus
-                  className="bg-white text-gray-900"
                 />
               </PopoverContent>
             </Popover>
           </div>
 
+          {/* Botões de ação lado a lado no mobile na parte inferior do cabeçalho */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* DIALOG DE BLOQUEIO (TEMA CLARO) */}
             <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="secondary" className="flex-1 sm:flex-none bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700">
-                  <Lock className="h-4 w-4 sm:mr-2 text-neutral-400" /> 
+                <Button variant="secondary" className="flex-1 sm:flex-none bg-gray-800 hover:bg-gray-900 text-white">
+                  <Lock className="h-4 w-4 sm:mr-2" /> 
                   <span className="text-xs sm:text-sm">Bloquear</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">Bloquear Horários na Agenda</DialogTitle>
+                  <DialogTitle>Bloquear Horários na Agenda</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleBlockSubmit} className="space-y-4 pt-4">
                   {!isJhonatas && (
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Agenda(s) a bloquear</Label>
+                      <Label>Agenda(s) a bloquear</Label>
                       <Select value={blockData.barber} onValueChange={(v) => setBlockData({...blockData, barber: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900">
-                          <SelectItem value="Ambos">Geral (Miguel e Jhonatas)</SelectItem>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ambos">Geral (Ambos)</SelectItem>
                           <SelectItem value="Miguel">Apenas Miguel</SelectItem>
-                          <SelectItem value="Jhonatas">Apenas Jhonatas</SelectItem>
+                          <SelectItem value="Jhonatas">Apenas {barberTwoName}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data de Início</Label>
-                      <Input type="date" required value={blockData.data_inicio} onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]" />
+                      <Label>Data de Início</Label>
+                      <Input type="date" required value={blockData.data_inicio} onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data Final</Label>
-                      <Input type="date" required value={blockData.data_fim} onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]" />
+                      <Label>Data Final</Label>
+                      <Input type="date" required value={blockData.data_fim} onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora Inicial</Label>
-                      <Input type="time" required value={blockData.hora_inicio} onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]" />
+                      <Label>Hora Inicial</Label>
+                      <Input type="time" required value={blockData.hora_inicio} onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora Final</Label>
-                      <Input type="time" required value={blockData.hora_fim} onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]" />
+                      <Label>Hora Final</Label>
+                      <Input type="time" required value={blockData.hora_fim} onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} />
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Gerar bloqueios a cada:</Label>
+                      <Label>Gerar bloqueios a cada:</Label>
                       <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900">
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
                           <SelectItem value="15">15 Minutos</SelectItem>
                           <SelectItem value="30">30 Minutos</SelectItem>
                           <SelectItem value="60">1 Hora</SelectItem>
@@ -645,44 +692,43 @@ const Agenda = ({ user }) => {
                       </Select>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                    <Button type="button" variant="outline" onClick={() => setBlockDialogOpen(false)} className="bg-white border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900">Cancelar</Button>
-                    <Button type="submit" className="bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">Aplicar Bloqueio</Button>
+                  <div className="flex justify-end gap-3 pt-6 border-t">
+                    <Button type="button" variant="outline" onClick={() => setBlockDialogOpen(false)}>Cancelar</Button>
+                    <Button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white">Aplicar Bloqueio</Button>
                   </div>
                 </form>
               </DialogContent>
             </Dialog>
 
-            {/* DIALOG DE NOVO/EDITAR AGENDAMENTO (TEMA CLARO) */}
             <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) resetForm(); }}>
               <DialogTrigger asChild>
-                <Button className="flex-1 sm:flex-none bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold shadow-lg">
+                <Button className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-700 text-white">
                   <Plus className="h-4 w-4 sm:mr-2" /> 
                   <span className="text-xs sm:text-sm">Novo</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
+                  <DialogTitle>{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                   <div className="grid grid-cols-2 gap-4">
                     {!isJhonatas && (
                     <div className="space-y-2 col-span-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Barbeiro</Label>
+                      <Label>Barbeiro</Label>
                       <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900">
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
                           <SelectItem value="Miguel">Miguel</SelectItem>
-                          <SelectItem value="Jhonatas">Jhonatas</SelectItem>
+                          <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     )}
                     
-                    {/* AUTO-COMPLETE (TEMA CLARO) */}
+                    {/* --- INÍCIO DA MÁGICA: CAMPO INTELIGENTE --- */}
                     <div className="space-y-2 col-span-2 relative">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Nome do Cliente</Label>
+                      <Label>Nome do Cliente</Label>
                       <Input 
                         required 
                         value={formData.cliente_nome} 
@@ -690,89 +736,86 @@ const Agenda = ({ user }) => {
                         onFocus={() => { if(formData.cliente_nome) setShowSuggestions(true) }}
                         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                         placeholder="Nome completo ou digite para buscar..."
-                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                       />
                       
+                      {/* Lista suspensa de clientes */}
                       {showSuggestions && filteredClientes.length > 0 && (
-                        <ul className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto mt-1">
+                        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
                           {filteredClientes.map((c, idx) => (
                             <li
                               key={idx}
-                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b border-gray-100 last:border-0"
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b last:border-0"
                               onMouseDown={(e) => {
                                 e.preventDefault(); 
                                 handleSelectClient(c);
                               }}
                             >
-                              <div className="font-bold text-gray-900">{c.nome}</div>
+                              <div className="font-medium text-gray-800">{c.nome}</div>
                               {c.telefone && <div className="text-xs text-gray-500">{c.telefone}</div>}
                             </li>
                           ))}
                         </ul>
                       )}
                     </div>
+                    {/* --- FIM DA MÁGICA --- */}
 
                     <div className="space-y-2 col-span-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone do Cliente</Label>
+                      <Label>Telefone do Cliente</Label>
                       <Input 
                         value={formData.cliente_telefone} 
                         onChange={(e) => setFormData({...formData, cliente_telefone: e.target.value})}
                         placeholder="(00) 00000-0000"
-                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Serviço</Label>
+                      <Label>Serviço</Label>
                       <Select value={formData.servico} onValueChange={handleServicoChange}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900">
+                        <SelectTrigger><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
+                        <SelectContent>
                           {servicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data</Label>
+                      <Label>Data</Label>
                       <Input 
                         type="date" 
                         required 
                         value={formData.data} 
                         onChange={(e) => setFormData({...formData, data: e.target.value})}
-                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora</Label>
+                      <Label>Hora</Label>
                       <Input 
                         type="time" 
                         required 
                         value={formData.hora} 
                         onChange={(e) => setFormData({...formData, hora: e.target.value})}
-                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Preço (R$)</Label>
+                      <Label>Preço (R$)</Label>
                       <Input 
                         value={formData.preco} 
                         onChange={(e) => setFormData({...formData, preco: e.target.value})}
                         placeholder="0,00"
-                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Forma de Pagamento</Label>
+                      <Label>Forma de Pagamento</Label>
                       <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900">
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
                           {formasPagamento.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Status</Label>
+                      <Label>Status</Label>
                       <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900">
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
                           <SelectItem value="Pendente">Pendente</SelectItem>
                           <SelectItem value="Confirmado">Confirmado</SelectItem>
                           <SelectItem value="Cancelado">Cancelado</SelectItem>
@@ -781,9 +824,9 @@ const Agenda = ({ user }) => {
                       </Select>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="bg-white border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900">Cancelar</Button>
-                    <Button type="submit" className="bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">
+                  <div className="flex justify-end gap-3 pt-6 border-t">
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                    <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white">
                       {editingAgendamento ? 'Salvar Alterações' : 'Criar Agendamento'}
                     </Button>
                   </div>

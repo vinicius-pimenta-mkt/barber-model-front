@@ -4,38 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import {
-  Plus, Edit, Trash2, Clock, CheckCircle, AlertCircle, CalendarDays, User, Phone, Lock, Settings
-} from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, CheckCircle, AlertCircle, CalendarDays, User, Phone, Lock, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Agenda = ({ user }) => {
   const isJhonatas = user?.role === 'jhonatas';
 
-  // --- DADOS DINÂMICOS DO BACKEND ---
+  // --- DADOS DINÂMICOS DO BACKEND (AGORA COM OS 2 BARBEIROS) ---
+  const [barberOneName, setBarberOneName] = useState('Carregando...');
   const [barberTwoName, setBarberTwoName] = useState('Carregando...');
+  
+  // Controle do Modal de Edição de Nome
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
+  const [targetBarber, setTargetBarber] = useState('barberTwoName'); // Qual barbeiro está editando
   const [tempName, setTempName] = useState('');
-  const [servicosDb, setServicosDb] = useState([]);
 
+  const [servicosDb, setServicosDb] = useState([]);
   const [agendamentos, setAgendamentos] = useState([]);
   const [clientes, setClientes] = useState([]); 
   const [filteredClientes, setFilteredClientes] = useState([]); 
@@ -48,6 +37,7 @@ const Agenda = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
   
+  // Internamente o "barber" continua sendo Miguel ou Jhonatas para conversar com o banco de dados corretamente
   const [formData, setFormData] = useState({
     cliente_nome: '', cliente_telefone: '', servico: '', data: format(new Date(), 'yyyy-MM-dd'),
     hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : 'Miguel'
@@ -69,13 +59,21 @@ const Agenda = ({ user }) => {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      // Busca Nome do Banco
-      const resNome = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`);
-      if (resNome.ok) {
-        const dataNome = await resNome.json();
-        setBarberTwoName(dataNome.valor);
-        setTempName(dataNome.valor);
-        localStorage.setItem('barberTwoName', dataNome.valor); // Deixa salvo para o Sidebar renderizar rápido
+      // Busca Nome Barbeiro 1
+      const resNome1 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`);
+      if (resNome1.ok) {
+        const dataNome1 = await resNome1.json();
+        setBarberOneName(dataNome1.valor);
+        localStorage.setItem('barberOneName', dataNome1.valor);
+      }
+
+      // Busca Nome Barbeiro 2
+      const resNome2 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`);
+      if (resNome2.ok) {
+        const dataNome2 = await resNome2.json();
+        setBarberTwoName(dataNome2.valor);
+        setTempName(dataNome2.valor); // Deixa preparado pro input
+        localStorage.setItem('barberTwoName', dataNome2.valor);
       }
 
       // Busca Serviços
@@ -104,14 +102,17 @@ const Agenda = ({ user }) => {
     if (tempName.trim() === '') return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`, {
+      // Salva na rota dinâmica escolhida (barberOneName ou barberTwoName)
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/${targetBarber}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ valor: tempName.trim() })
       });
       if (res.ok) {
-        setBarberTwoName(tempName.trim());
-        localStorage.setItem('barberTwoName', tempName.trim());
+        if (targetBarber === 'barberOneName') setBarberOneName(tempName.trim());
+        if (targetBarber === 'barberTwoName') setBarberTwoName(tempName.trim());
+        
+        localStorage.setItem(targetBarber, tempName.trim());
         setNameDialogOpen(false);
         window.location.reload(); 
       }
@@ -265,7 +266,9 @@ const Agenda = ({ user }) => {
   };
 
   const renderTable = (barbeiroKey) => {
-    const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barbeiroKey;
+    // Define qual nome mostrar dinamicamente (Miguel/Jhonatas interno -> Nome de Exibição)
+    const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barberOneName;
+    
     const filtrados = agendamentos.filter(a => a.barber === barbeiroKey && (!selectedDate || a.data === format(selectedDate, 'yyyy-MM-dd'))).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
@@ -369,24 +372,49 @@ const Agenda = ({ user }) => {
           </div>
           
           {!isJhonatas && (
-            <Dialog open={nameDialogOpen} onOpenChange={setNameDialogOpen}>
+            <Dialog open={nameDialogOpen} onOpenChange={(open) => {
+              setNameDialogOpen(open);
+              if (open) {
+                 setTargetBarber('barberTwoName');
+                 setTempName(barberTwoName);
+              }
+            }}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-white/50 hover:text-white hover:bg-white/10" title="Configurar Nome do Barbeiro 2">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-white/50 hover:text-white hover:bg-white/10" title="Configurar Nomes das Agendas">
                   <Settings className="h-5 w-5" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px] bg-white border-gray-200">
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-bold text-gray-900 uppercase tracking-tighter">Alterar Nome do Barbeiro Secundário</DialogTitle>
+                  <DialogTitle className="text-lg font-bold text-gray-900 uppercase tracking-tighter">Alterar Nome de Exibição</DialogTitle>
                 </DialogHeader>
-                <div className="py-4 space-y-3">
-                  <p className="text-xs text-gray-500">Este nome substituirá visualmente o nome "Jhonatas" em todas as telas do sistema para você.</p>
-                  <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Nome de Exibição</Label>
-                  <Input 
-                    value={tempName} 
-                    onChange={(e) => setTempName(e.target.value)} 
-                    className="bg-gray-50 text-gray-900 focus-visible:ring-[#DEAE60]" 
-                  />
+                <div className="py-4 space-y-4">
+                  <p className="text-xs text-gray-500">O nome escolhido será atualizado em todo o sistema, mas o banco de dados continuará organizando as contas normalmente.</p>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Qual agenda deseja renomear?</Label>
+                    <Select value={targetBarber} onValueChange={(val) => {
+                      setTargetBarber(val);
+                      setTempName(val === 'barberOneName' ? barberOneName : barberTwoName);
+                    }}>
+                      <SelectTrigger className="bg-gray-50 text-gray-900 focus-visible:ring-[#DEAE60]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-200 text-gray-900">
+                        <SelectItem value="barberOneName">Agenda 1 ({barberOneName})</SelectItem>
+                        <SelectItem value="barberTwoName">Agenda 2 ({barberTwoName})</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Novo Nome de Exibição</Label>
+                    <Input 
+                      value={tempName} 
+                      onChange={(e) => setTempName(e.target.value)} 
+                      className="bg-gray-50 text-gray-900 focus-visible:ring-[#DEAE60]" 
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setNameDialogOpen(false)} className="bg-white text-gray-600 hover:bg-gray-50">Cancelar</Button>
@@ -449,7 +477,7 @@ const Agenda = ({ user }) => {
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Ambos">Geral (Ambos)</SelectItem>
-                          <SelectItem value="Miguel">Apenas Miguel</SelectItem>
+                          <SelectItem value="Miguel">Apenas {barberOneName}</SelectItem>
                           <SelectItem value="Jhonatas">Apenas {barberTwoName}</SelectItem>
                         </SelectContent>
                       </Select>
@@ -540,7 +568,7 @@ const Agenda = ({ user }) => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
-                          <SelectItem value="Miguel">Miguel</SelectItem>
+                          <SelectItem value="Miguel">{barberOneName}</SelectItem>
                           <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
                         </SelectContent>
                       </Select>

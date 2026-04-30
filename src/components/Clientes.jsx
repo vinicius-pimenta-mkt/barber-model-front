@@ -142,13 +142,13 @@ const Clientes = ({ user }) => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 pt-8 sm:pt-4">
       
       {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Clientes</h1>
-          <p className="text-neutral-400">Gerencie os clientes da barbearia</p>
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Clientes</h1>
+          <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gerencie os clientes da barbearia</p>
         </div>
         
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

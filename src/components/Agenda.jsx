@@ -19,24 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
-  Plus,
-  Edit,
-  Trash2,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  CalendarDays,
-  User,
-  Phone,
-  Lock,
-  Settings
+  Plus, Edit, Trash2, Clock, CheckCircle, AlertCircle, CalendarDays, User, Phone, Lock, Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -44,20 +30,11 @@ import { ptBR } from 'date-fns/locale';
 const Agenda = ({ user }) => {
   const isJhonatas = user?.role === 'jhonatas';
 
-  // --- LÓGICA DO NOME DINÂMICO ---
-  const [barberTwoName, setBarberTwoName] = useState(localStorage.getItem('barberTwoName') || 'Jhonatas');
+  // --- DADOS DINÂMICOS DO BACKEND ---
+  const [barberTwoName, setBarberTwoName] = useState('Carregando...');
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
-  const [tempName, setTempName] = useState(barberTwoName);
-
-  const handleSaveName = () => {
-    if (tempName.trim() === '') return;
-    localStorage.setItem('barberTwoName', tempName.trim());
-    setBarberTwoName(tempName.trim());
-    setNameDialogOpen(false);
-    // Recarrega a página para atualizar todo o sistema visualmente
-    window.location.reload(); 
-  };
-  // --------------------------------
+  const [tempName, setTempName] = useState('');
+  const [servicosDb, setServicosDb] = useState([]);
 
   const [agendamentos, setAgendamentos] = useState([]);
   const [clientes, setClientes] = useState([]); 
@@ -72,234 +49,131 @@ const Agenda = ({ user }) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   
   const [formData, setFormData] = useState({
-    cliente_nome: '',
-    cliente_telefone: '',
-    servico: '',
-    data: format(new Date(), 'yyyy-MM-dd'),
-    hora: '',
-    status: 'Pendente',
-    preco: '',
-    forma_pagamento: 'Dinheiro',
-    observacoes: '',
-    barber: isJhonatas ? 'Jhonatas' : 'Miguel' // No banco, continuará salvando a role raiz
+    cliente_nome: '', cliente_telefone: '', servico: '', data: format(new Date(), 'yyyy-MM-dd'),
+    hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : 'Miguel'
   });
 
   const [blockData, setBlockData] = useState({
-    barber: isJhonatas ? 'Jhonatas' : 'Ambos',
-    data_inicio: format(new Date(), 'yyyy-MM-dd'),
-    data_fim: format(new Date(), 'yyyy-MM-dd'),
-    hora_inicio: '12:00',
-    hora_fim: '14:00',
-    intervalo: '30'
+    barber: isJhonatas ? 'Jhonatas' : 'Ambos', data_inicio: format(new Date(), 'yyyy-MM-dd'), data_fim: format(new Date(), 'yyyy-MM-dd'), hora_inicio: '12:00', hora_fim: '14:00', intervalo: '30'
   });
 
-  const tabelaPrecos = {
-    'Barba': 30,
-    'Barba + Pézinho': 40,
-    'Barba + Pigmentação': 50,
-    'Barba Express': 20,
-    'Bigode': 10,
-    'Camuflagem (Fios brancos)': 35,
-    'Cone Hindu': 25,
-    'Corte': 40,
-    'Corte + Pigmentação': 60,
-    'Corte 1 pente + barba': 50,
-    'Corte e Barba': 60,
-    'Corte Infantil': 45,
-    'Corte Máquina 1 pente': 25,
-    'Hidratação Capilar': 25,
-    'Limpeza Nasal': 25,
-    'Luzes': 100,
-    'Luzes e Corte': 140,
-    'Navalhado': 30,
-    'Navalhado + Barba': 50,
-    'Pezinho': 10,
-    'Pigmentação': 25,
-    'Platinado': 100,
-    'Platinado e Corte': 140,
-    'Sobrancelha': 10,
-    'Sobrancelha na fita': 25
-  };
-
-  const servicos = Object.keys(tabelaPrecos);
   const formasPagamento = ['Pix', 'Dinheiro', 'Cartão de Débito', 'Cartão de Crédito'];
 
   useEffect(() => {
-    fetchAgendamentos();
-    fetchClientes(); 
+    fetchDadosIniciais();
   }, []);
 
-  const fetchClientes = async () => {
+  const fetchDadosIniciais = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      const headers = { 'Authorization': `Bearer ${token}` };
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/clientes`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setClientes(data);
+      // Busca Nome do Banco
+      const resNome = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`);
+      if (resNome.ok) {
+        const dataNome = await resNome.json();
+        setBarberTwoName(dataNome.valor);
+        setTempName(dataNome.valor);
+        localStorage.setItem('barberTwoName', dataNome.valor); // Deixa salvo para o Sidebar renderizar rápido
       }
-    } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
+
+      // Busca Serviços
+      const resServicos = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`, { headers });
+      if (resServicos.ok) setServicosDb(await resServicos.json());
+
+      // Busca Clientes
+      const resClientes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/clientes`, { headers });
+      if (resClientes.ok) setClientes(await resClientes.json());
+
+      // Busca Agendamentos
+      const requests = [];
+      if (!isJhonatas) requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Miguel' }))));
+      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Jhonatas' }))));
+      const results = await Promise.all(requests);
+      setAgendamentos(results.flat());
+
+    } catch (error) { 
+      console.error('Erro geral:', error); 
+    } finally { 
+      setLoading(false); 
     }
   };
 
-  const fetchAgendamentos = async () => {
+  const handleSaveName = async () => {
+    if (tempName.trim() === '') return;
     try {
       const token = localStorage.getItem('token');
-      
-      const requests = [];
-      if (!isJhonatas) {
-        requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Miguel' }))));
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ valor: tempName.trim() })
+      });
+      if (res.ok) {
+        setBarberTwoName(tempName.trim());
+        localStorage.setItem('barberTwoName', tempName.trim());
+        setNameDialogOpen(false);
+        window.location.reload(); 
       }
-      
-      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Jhonatas' }))));
-
-      const results = await Promise.all(requests);
-      const allAgendamentos = results.flat();
-
-      setAgendamentos(allAgendamentos);
-    } catch (error) {
-      console.error('Erro ao carregar agendamentos:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error("Erro ao salvar nome", error); }
   };
 
   const handleNameChange = (e) => {
     const value = e.target.value;
     setFormData({ ...formData, cliente_nome: value });
-    
     if (value.length > 0) {
-      const limparTexto = (str) => {
-        return str 
-          ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() 
-          : "";
-      };
-
+      const limparTexto = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
       const termoBusca = limparTexto(value);
-
-      const filtered = clientes.filter(c => {
-        const nomeClienteLimpo = limparTexto(c.nome);
-        const matchNome = nomeClienteLimpo.includes(termoBusca);
-        
-        const telefoneLimpo = c.telefone ? c.telefone.replace(/\D/g, '') : '';
-        const termoTelefoneLimpo = value.replace(/\D/g, '');
-        
-        const matchTelefone = termoTelefoneLimpo.length > 0 && telefoneLimpo.includes(termoTelefoneLimpo);
-
-        return matchNome || matchTelefone;
-      });
-      
-      setFilteredClientes(filtered);
+      const filtered = clientes.filter(c => limparTexto(c.nome).includes(termoBusca) || (value.replace(/\D/g, '').length > 0 && (c.telefone ? c.telefone.replace(/\D/g, '') : '').includes(value.replace(/\D/g, ''))));
+      setFilteredClientes(filtered); 
       setShowSuggestions(true);
-    } else {
-      setShowSuggestions(false);
+    } else { 
+      setShowSuggestions(false); 
     }
   };
 
-  const handleSelectClient = (cliente) => {
-    setFormData({
-      ...formData,
-      cliente_nome: cliente.nome,
-      cliente_telefone: cliente.telefone || ''
-    });
+  const handleSelectClient = (cliente) => { 
+    setFormData({ ...formData, cliente_nome: cliente.nome, cliente_telefone: cliente.telefone || '' }); 
     setShowSuggestions(false); 
   };
 
   const handleServicoChange = (value) => {
-    const precoSugerido = tabelaPrecos[value] || 0;
-    setFormData({
-      ...formData,
-      servico: value,
-      preco: precoSugerido.toString().replace('.', ',')
-    });
+    const servicoSelecionado = servicosDb.find(s => s.nome === value);
+    const precoFormatado = servicoSelecionado ? (servicoSelecionado.preco / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '0,00';
+    setFormData({ ...formData, servico: value, preco: precoFormatado });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     const [ano, mes, dia] = formData.data.split('-');
-    const dataObj = new Date(ano, mes - 1, dia);
-    const diaSemana = dataObj.getDay();
-    if ((diaSemana === 0 || diaSemana === 1) && formData.status !== 'Bloqueado') {
-      alert('A barbearia é fechada aos Domingos e Segundas-feiras. Selecione outra data.');
-      return;
+    if (new Date(ano, mes - 1, dia).getDay() < 2 && formData.status !== 'Bloqueado') {
+      return alert('A barbearia é fechada aos Domingos e Segundas-feiras.');
     }
-
+    
     try {
       const token = localStorage.getItem('token');
-      const isJhonatasData = formData.barber === 'Jhonatas';
-      const baseUrl = isJhonatasData 
-        ? `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`
-        : `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
-
+      const baseUrl = formData.barber === 'Jhonatas' ? `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas` : `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
       const url = editingAgendamento ? `${baseUrl}/${editingAgendamento.id}` : baseUrl;
-      const method = editingAgendamento ? 'PUT' : 'POST';
 
       let precoEmCentavos = null;
       if (formData.preco) {
-        const stringLimpa = formData.preco.toString().replace(/[^\d.,]/g, '');
-        const valorFloat = parseFloat(stringLimpa.replace(',', '.'));
-        if (!isNaN(valorFloat)) {
-          precoEmCentavos = Math.round(valorFloat * 100);
-        }
+        const valorFloat = parseFloat(formData.preco.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
+        if (!isNaN(valorFloat)) precoEmCentavos = Math.round(valorFloat * 100);
       }
 
-      const payload = { ...formData, preco: precoEmCentavos };
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+      const response = await fetch(url, { 
+        method: editingAgendamento ? 'PUT' : 'POST', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+        body: JSON.stringify({ ...formData, preco: precoEmCentavos }) 
       });
-
-      if (response.ok) {
-        fetchAgendamentos();
-        setDialogOpen(false);
-        resetForm();
+      if (response.ok) { 
+        fetchDadosIniciais(); 
+        setDialogOpen(false); 
+        setEditingAgendamento(null); 
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Erro ao salvar agendamento.');
+        alert((await response.json()).error || 'Erro ao salvar.');
       }
-    } catch (error) {
-      console.error('Erro ao salvar agendamento:', error);
-    }
-  };
-
-  const gerarSlotsBloqueio = (blockId) => {
-    const slots = [];
-    const [yearIni, monthIni, dayIni] = blockData.data_inicio.split('-').map(Number);
-    const [yearFim, monthFim, dayFim] = blockData.data_fim.split('-').map(Number);
-    
-    const dIni = new Date(yearIni, monthIni - 1, dayIni, 12, 0, 0);
-    const dFim = new Date(yearFim, monthFim - 1, dayFim, 12, 0, 0);
-    
-    for (let d = new Date(dIni); d <= dFim; d.setDate(d.getDate() + 1)) {
-      const dataStr = format(d, 'yyyy-MM-dd');
-      const [hIni, mIni] = blockData.hora_inicio.split(':').map(Number);
-      const [hFim, mFim] = blockData.hora_fim.split(':').map(Number);
-      
-      let minAtual = hIni * 60 + mIni;
-      const minFim = hFim * 60 + mFim;
-      
-      while (minAtual <= minFim) {
-        const h = Math.floor(minAtual / 60).toString().padStart(2, '0');
-        const m = (minAtual % 60).toString().padStart(2, '0');
-        slots.push({ data: dataStr, hora: `${h}:${m}`, blockId });
-        minAtual += parseInt(blockData.intervalo);
-      }
-    }
-    return slots;
+    } catch (error) { console.error(error); }
   };
 
   const handleBlockSubmit = async (e) => {
@@ -307,203 +181,105 @@ const Agenda = ({ user }) => {
     try {
       const token = localStorage.getItem('token');
       const blockId = 'block_' + Date.now();
-      const slots = gerarSlotsBloqueio(blockId);
-      
-      if (slots.length === 0) {
-        alert("Nenhum horário selecionado. Verifique os horários e datas.");
-        return;
-      }
-
-      const requests = [];
-      
-      for (const slot of slots) {
-        const payload = {
-          cliente_nome: 'Bloqueio de Agenda',
-          cliente_telefone: '',
-          servico: 'Horário Bloqueado',
-          data: slot.data,
-          hora: slot.hora,
-          status: 'Bloqueado',
-          preco: 0,
-          forma_pagamento: '-',
-          observacoes: slot.blockId
-        };
-
-        if (blockData.barber === 'Miguel' || blockData.barber === 'Ambos') {
-          requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(payload)
-          }));
-        }
-        if (blockData.barber === 'Jhonatas' || blockData.barber === 'Ambos') {
-          requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(payload)
-          }));
+      const slots = [];
+      const dIni = new Date(blockData.data_inicio + 'T12:00:00');
+      const dFim = new Date(blockData.data_fim + 'T12:00:00');
+      for (let d = new Date(dIni); d <= dFim; d.setDate(d.getDate() + 1)) {
+        const [hIni, mIni] = blockData.hora_inicio.split(':').map(Number);
+        const [hFim, mFim] = blockData.hora_fim.split(':').map(Number);
+        let minAtual = hIni * 60 + mIni;
+        while (minAtual <= hFim * 60 + mFim) {
+          slots.push({ data: format(d, 'yyyy-MM-dd'), hora: `${Math.floor(minAtual / 60).toString().padStart(2, '0')}:${(minAtual % 60).toString().padStart(2, '0')}`, blockId });
+          minAtual += parseInt(blockData.intervalo);
         }
       }
+      if (slots.length === 0) return alert("Nenhum horário selecionado.");
+
+      const requests = slots.flatMap(slot => {
+        const payload = { cliente_nome: 'Bloqueio de Agenda', cliente_telefone: '', servico: 'Horário Bloqueado', data: slot.data, hora: slot.hora, status: 'Bloqueado', preco: 0, forma_pagamento: '-', observacoes: slot.blockId };
+        const reqs = [];
+        if (blockData.barber === 'Miguel' || blockData.barber === 'Ambos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
+        if (blockData.barber === 'Jhonatas' || blockData.barber === 'Ambos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
+        return reqs;
+      });
 
       await Promise.all(requests);
-      alert(`${slots.length} horários foram bloqueados com sucesso!`);
-      
-      fetchAgendamentos();
+      alert('Bloqueado com sucesso!'); 
+      fetchDadosIniciais(); 
       setBlockDialogOpen(false);
-    } catch (error) {
-      console.error('Erro ao bloquear agenda:', error);
-      alert("Erro de conexão ao tentar bloquear a agenda.");
-    }
+    } catch (error) { alert("Erro de conexão ao bloquear."); }
   };
 
   const handleDelete = async (agendamento) => {
     const token = localStorage.getItem('token');
-    
     if (agendamento.status === 'Bloqueado' && agendamento.observacoes?.startsWith('block_')) {
-      const deleteGroup = confirm('ATENÇÃO: Este horário faz parte de um BLOQUEIO EM LOTE.\n\nClique em [OK] para excluir a rotina completa.\n\nClique em [Cancelar] se quiser excluir APENAS este horário específico.');
-      
-      if (deleteGroup) {
+      if (confirm('Este horário faz parte de um BLOQUEIO EM LOTE.\n[OK] para excluir rotina completa.\n[Cancelar] se quiser excluir APENAS este específico.')) {
         try {
-          const blockId = agendamento.observacoes;
-          const itemsToDelete = agendamentos.filter(a => a.observacoes === blockId);
-          
-          const deleteRequests = itemsToDelete.map(item => {
-            const baseUrl = item.barber === 'Jhonatas' 
-              ? `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas` 
-              : `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
-              
-            return fetch(`${baseUrl}/${item.id}`, {
-              method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${token}` },
-            });
-          });
-
-          await Promise.all(deleteRequests);
-          fetchAgendamentos();
-          alert('Bloqueio removido!');
-        } catch (error) { 
-          alert('Erro ao tentar remover o bloqueio.');
-        }
-        return;
-      } else {
-        if (!confirm('Confirmar liberação APENAS deste horário específico?')) return;
-      }
-    } else {
-      if (!confirm('Tem certeza que deseja cancelar/excluir este registro?')) return;
-    }
-
-    const isJhonatasData = agendamento.barber === 'Jhonatas';
-    const baseUrl = isJhonatasData 
-      ? `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`
-      : `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
+          const itemsToDelete = agendamentos.filter(a => a.observacoes === agendamento.observacoes);
+          await Promise.all(itemsToDelete.map(item => fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${item.barber === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos'}/${item.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })));
+          return fetchDadosIniciais();
+        } catch (error) { return alert('Erro ao remover bloqueio.'); }
+      } else if (!confirm('Confirmar liberação APENAS deste horário específico?')) return;
+    } else if (!confirm('Deseja excluir este registro?')) return;
 
     try {
-      const response = await fetch(`${baseUrl}/${agendamento.id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (response.ok) fetchAgendamentos();
-    } catch (error) {
-      console.error('Erro ao cancelar agendamento:', error);
-    }
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${agendamento.barber === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos'}/${agendamento.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      if (response.ok) fetchDadosIniciais();
+    } catch (error) { console.error(error); }
   };
 
   const resetForm = () => {
-    setFormData({
-      cliente_nome: '',
-      cliente_telefone: '',
-      servico: '',
-      data: format(selectedDate || new Date(), 'yyyy-MM-dd'),
-      hora: '',
-      status: 'Pendente',
-      preco: '',
-      forma_pagamento: 'Dinheiro',
-      observacoes: '',
-      barber: isJhonatas ? 'Jhonatas' : 'Miguel'
-    });
-    setEditingAgendamento(null);
-    setShowSuggestions(false); 
+    setFormData({ cliente_nome: '', cliente_telefone: '', servico: '', data: format(selectedDate || new Date(), 'yyyy-MM-dd'), hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : 'Miguel' });
+    setEditingAgendamento(null); setShowSuggestions(false); 
   };
 
   const openEditDialog = (agendamento) => {
     setEditingAgendamento(agendamento);
-    
     let safePreco = '';
     if (agendamento?.preco !== null && agendamento?.preco !== undefined) {
-      const precoRaw = agendamento.preco;
-      
-      if (typeof precoRaw === 'string' && isNaN(Number(precoRaw))) {
-        const limpa = precoRaw.replace(/[^\d,]/g, ''); 
-        if (limpa) safePreco = limpa;
-      } else {
-        const numPreco = Number(precoRaw);
-        if (!isNaN(numPreco)) {
-          if (numPreco > 0 && numPreco < 500) {
-            safePreco = numPreco.toString().replace('.', ',');
-          } else {
-            safePreco = (numPreco / 100).toString().replace('.', ',');
-          }
-        }
-      }
+      const numPreco = Number(agendamento.preco);
+      if (!isNaN(numPreco)) safePreco = (numPreco > 0 && numPreco < 500) ? numPreco.toString().replace('.', ',') : (numPreco / 100).toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
-
-    setFormData({
-      cliente_nome: agendamento?.cliente_nome ?? '',
-      cliente_telefone: agendamento?.cliente_telefone ?? '',
-      servico: agendamento?.servico ?? '',
-      data: agendamento?.data ?? '',
-      hora: agendamento?.hora ?? '',
-      status: agendamento?.status ?? 'Pendente',
-      preco: safePreco,
-      forma_pagamento: agendamento?.forma_pagamento ?? 'Dinheiro',
-      observacoes: agendamento?.observacoes ?? '',
-      barber: agendamento?.barber ?? (isJhonatas ? 'Jhonatas' : 'Miguel')
-    });
+    setFormData({ ...agendamento, preco: safePreco, barber: agendamento?.barber ?? (isJhonatas ? 'Jhonatas' : 'Miguel') });
     setDialogOpen(true);
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Confirmado': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Pendente':   return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Cancelado':  return 'bg-red-100 text-red-800 border-red-200';
-      case 'Bloqueado':  return 'bg-gray-100 text-gray-800 border-gray-300';
-      default:           return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'Confirmado': return 'bg-green-950/50 text-green-400 border-green-900/50';
+      case 'Pendente':   return 'bg-yellow-950/50 text-yellow-400 border-yellow-900/50';
+      case 'Cancelado':  return 'bg-red-950/50 text-red-400 border-red-900/50';
+      case 'Bloqueado':  return 'bg-neutral-800 text-neutral-400 border-neutral-700';
+      default:           return 'bg-neutral-800 text-neutral-400 border-neutral-700';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Confirmado': return <CheckCircle className="h-3 w-3" />;
-      case 'Pendente':   return <Clock className="h-3 w-3" />;
-      case 'Cancelado':  return <AlertCircle className="h-3 w-3" />;
-      case 'Bloqueado':  return <Lock className="h-3 w-3" />;
-      default:           return <Clock className="h-3 w-3" />;
+      case 'Confirmado': return <CheckCircle className="h-4 w-4" />;
+      case 'Pendente':   return <Clock className="h-4 w-4" />;
+      case 'Cancelado':  return <AlertCircle className="h-4 w-4" />;
+      case 'Bloqueado':  return <Lock className="h-4 w-4" />;
+      default:           return <Clock className="h-4 w-4" />;
     }
   };
 
   const renderTable = (barbeiroKey) => {
-    // Altera o título de 'Jhonatas' para o nome configurado
     const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barbeiroKey;
-
-    const filtrados = agendamentos.filter(a => {
-      const matchBarber = a.barber === barbeiroKey;
-      const matchDate = selectedDate ? a.data === format(selectedDate, 'yyyy-MM-dd') : true;
-      return matchBarber && matchDate;
-    }).sort((a, b) => a.hora.localeCompare(b.hora));
+    const filtrados = agendamentos.filter(a => a.barber === barbeiroKey && (!selectedDate || a.data === format(selectedDate, 'yyyy-MM-dd'))).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
-      <Card className="flex-1 shadow-sm">
-        <CardHeader className={`${barbeiroKey === 'Miguel' ? 'bg-amber-50/50' : 'bg-green-50/50'} border-b`}>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <User className={`h-5 w-5 ${barbeiroKey === 'Jhonatas' ? 'text-amber-600' : 'text-green-600'}`} />
+      <Card className="flex-1 bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+        <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
+          <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
+            <User className={`h-5 w-5 ${barbeiroKey === 'Jhonatas' ? 'text-neutral-400' : 'text-[#DEAE60]'}`} />
             Agenda: {displayNome}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-500 uppercase bg-gray-50/50">
+              <thead className="text-xs text-neutral-400 uppercase bg-neutral-950/50">
                 <tr>
                   <th className="px-4 py-3">Hora</th>
                   <th className="px-4 py-3">Cliente</th>
@@ -513,37 +289,37 @@ const Agenda = ({ user }) => {
                   <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-neutral-800">
                 {filtrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-4 py-12 text-center text-gray-400 italic">
+                    <td colSpan="6" className="px-4 py-12 text-center text-neutral-500 italic">
                       Nenhum agendamento para este dia.
                     </td>
                   </tr>
                 ) : (
                   filtrados.map((a) => (
-                    <tr key={a.id} className={`hover:bg-gray-50 transition-colors ${a.status === 'Bloqueado' ? 'bg-gray-100 opacity-80' : ''}`}>
-                      <td className="px-4 py-3 font-bold text-gray-900">{a.hora.substring(0, 5)}</td>
+                    <tr key={a.id} className={`hover:bg-white/5 transition-colors ${a.status === 'Bloqueado' ? 'bg-neutral-950/30 opacity-60' : ''}`}>
+                      <td className="px-4 py-3 font-black text-white">{a.hora.substring(0, 5)}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col">
-                          <span className={`font-medium ${a.status === 'Bloqueado' ? 'text-gray-500' : 'text-gray-700'}`}>{a.cliente_nome}</span>
+                          <span className={`font-bold ${a.status === 'Bloqueado' ? 'text-neutral-500' : 'text-neutral-100'}`}>{a.cliente_nome}</span>
                           {a.status !== 'Bloqueado' && (
-                            <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                              <Phone className="h-2 w-2" /> {a.cliente_telefone || 'Sem tel.'}
+                            <span className="text-[10px] text-neutral-400 flex items-center gap-1 mt-0.5">
+                              <Phone className="h-2 w-2 text-[#DEAE60]" /> {a.cliente_telefone || 'Sem tel.'}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{a.servico}</td>
+                      <td className="px-4 py-3 text-neutral-300">{a.servico}</td>
                       <td className="px-4 py-3">
                         {a.status !== 'Bloqueado' ? (
-                           <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+                           <span className="text-[10px] bg-neutral-800 border border-neutral-700 px-2 py-1 rounded-full text-neutral-300 font-medium">
                              {a.forma_pagamento || 'Não def.'}
                            </span>
                         ) : '-'}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant="outline" className={`${getStatusColor(a.status)} font-normal text-[10px]`}>
+                        <Badge variant="outline" className={`${getStatusColor(a.status)} text-[10px] uppercase tracking-widest`}>
                           <span className="flex items-center gap-1">
                             {getStatusIcon(a.status)}
                             {a.status}
@@ -552,11 +328,11 @@ const Agenda = ({ user }) => {
                       </td>
                       <td className="px-4 py-3 text-right space-x-1">
                         {a.status !== 'Bloqueado' && (
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} className="h-8 w-8 text-blue-600">
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} className="h-8 w-8 text-[#DEAE60] hover:bg-neutral-800 hover:text-[#DEAE60]">
                             <Edit className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(a)} className="h-8 w-8 text-red-600">
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(a)} className="h-8 w-8 text-red-400 hover:bg-red-950/50 hover:text-red-300">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </td>
@@ -571,8 +347,16 @@ const Agenda = ({ user }) => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DEAE60]"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 pt-8 sm:pt-4">
+    <div className="space-y-6 animate-in fade-in duration-500 pt-8 sm:pt-4">
       
       {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -580,18 +364,18 @@ const Agenda = ({ user }) => {
         {/* TÍTULO E BOTÃO DE CONFIGURAÇÃO DE NOME */}
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Agenda de Atendimentos</h1>
-            <p className="text-gray-600 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gerencie os horários da barbearia</p>
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Agenda de Atendimentos</h1>
+            <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gerencie os horários da barbearia</p>
           </div>
           
           {!isJhonatas && (
             <Dialog open={nameDialogOpen} onOpenChange={setNameDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600" title="Configurar Nome do Barbeiro 2">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-white/50 hover:text-white hover:bg-white/10" title="Configurar Nome do Barbeiro 2">
                   <Settings className="h-5 w-5" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[400px]">
+              <DialogContent className="sm:max-w-[400px] bg-white border-gray-200">
                 <DialogHeader>
                   <DialogTitle className="text-lg font-bold text-gray-900 uppercase tracking-tighter">Alterar Nome do Barbeiro Secundário</DialogTitle>
                 </DialogHeader>
@@ -601,11 +385,12 @@ const Agenda = ({ user }) => {
                   <Input 
                     value={tempName} 
                     onChange={(e) => setTempName(e.target.value)} 
+                    className="bg-gray-50 text-gray-900 focus-visible:ring-[#DEAE60]" 
                   />
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setNameDialogOpen(false)}>Cancelar</Button>
-                  <Button onClick={handleSaveName} className="bg-amber-600 hover:bg-amber-700 text-white">Salvar Nome</Button>
+                  <Button variant="outline" onClick={() => setNameDialogOpen(false)} className="bg-white text-gray-600 hover:bg-gray-50">Cancelar</Button>
+                  <Button onClick={handleSaveName} className="bg-[#DEAE60] text-neutral-950 font-bold hover:bg-[#DEAE60]/90">Salvar Nome</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -617,12 +402,12 @@ const Agenda = ({ user }) => {
           <div className="w-full sm:w-auto">
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 flex justify-center">
-                  <CalendarDays className="h-4 w-4 mr-2 text-amber-600" />
+                <Button variant="outline" className="w-full sm:w-auto bg-neutral-900/60 border-neutral-800 text-white hover:bg-neutral-800 flex justify-center backdrop-blur-md">
+                  <CalendarDays className="h-4 w-4 mr-2 text-[#DEAE60]" />
                   {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "Filtrar Data"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className="w-auto p-0 bg-white border-gray-200" align="end">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
@@ -635,32 +420,34 @@ const Agenda = ({ user }) => {
                   disabled={(date) => date.getDay() === 0 || date.getDay() === 1}
                   locale={ptBR}
                   initialFocus
+                  className="bg-white text-gray-900"
                 />
               </PopoverContent>
             </Popover>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* DIALOG DE BLOQUEIO */}
             <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="secondary" className="flex-1 sm:flex-none bg-gray-800 hover:bg-gray-900 text-white">
-                  <Lock className="h-4 w-4 sm:mr-2" /> 
+                <Button variant="secondary" className="flex-1 sm:flex-none bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700">
+                  <Lock className="h-4 w-4 sm:mr-2 text-neutral-400" /> 
                   <span className="text-xs sm:text-sm">Bloquear</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
                 <DialogHeader>
-                  <DialogTitle>Bloquear Horários na Agenda</DialogTitle>
+                  <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">Bloquear Horários na Agenda</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleBlockSubmit} className="space-y-4 pt-4">
                   {!isJhonatas && (
                     <div className="space-y-2">
-                      <Label>Agenda(s) a bloquear</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Agenda(s) a bloquear</Label>
                       <Select value={blockData.barber} onValueChange={(v) => setBlockData({...blockData, barber: v})}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Ambos">Geral (Ambos)</SelectItem>
                           <SelectItem value="Miguel">Apenas Miguel</SelectItem>
                           <SelectItem value="Jhonatas">Apenas {barberTwoName}</SelectItem>
@@ -670,48 +457,52 @@ const Agenda = ({ user }) => {
                   )}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Data de Início</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data de Início</Label>
                       <Input 
                         type="date" 
                         required 
                         value={blockData.data_inicio} 
                         onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Data Final</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data Final</Label>
                       <Input 
                         type="date" 
                         required 
                         value={blockData.data_fim} 
                         onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Hora Inicial</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora Inicial</Label>
                       <Input 
                         type="time" 
                         required 
                         value={blockData.hora_inicio} 
                         onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Hora Final</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora Final</Label>
                       <Input 
                         type="time" 
                         required 
                         value={blockData.hora_fim} 
                         onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label>Gerar bloqueios a cada:</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Gerar bloqueios a cada:</Label>
                       <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="15">15 Minutos</SelectItem>
                           <SelectItem value="30">30 Minutos</SelectItem>
                           <SelectItem value="60">1 Hora</SelectItem>
@@ -719,35 +510,36 @@ const Agenda = ({ user }) => {
                       </Select>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 pt-6 border-t">
-                    <Button type="button" variant="outline" onClick={() => setBlockDialogOpen(false)}>Cancelar</Button>
-                    <Button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white">Aplicar Bloqueio</Button>
+                  <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                    <Button type="button" variant="outline" onClick={() => setBlockDialogOpen(false)} className="bg-white border-gray-200 text-gray-600 hover:bg-gray-50">Cancelar</Button>
+                    <Button type="submit" className="bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">Aplicar Bloqueio</Button>
                   </div>
                 </form>
               </DialogContent>
             </Dialog>
 
+            {/* DIALOG DE NOVO/EDITAR AGENDAMENTO */}
             <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) resetForm(); }}>
               <DialogTrigger asChild>
-                <Button className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-700 text-white">
+                <Button className="flex-1 sm:flex-none bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold shadow-lg">
                   <Plus className="h-4 w-4 sm:mr-2" /> 
                   <span className="text-xs sm:text-sm">Novo</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
                 <DialogHeader>
-                  <DialogTitle>{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
+                  <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                   <div className="grid grid-cols-2 gap-4">
                     {!isJhonatas && (
                     <div className="space-y-2 col-span-2">
-                      <Label>Barbeiro</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Barbeiro</Label>
                       <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Miguel">Miguel</SelectItem>
                           <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
                         </SelectContent>
@@ -756,7 +548,7 @@ const Agenda = ({ user }) => {
                     )}
                     
                     <div className="space-y-2 col-span-2 relative">
-                      <Label>Nome do Cliente</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Nome do Cliente</Label>
                       <Input 
                         required 
                         value={formData.cliente_nome} 
@@ -764,20 +556,21 @@ const Agenda = ({ user }) => {
                         onFocus={() => { if(formData.cliente_nome) setShowSuggestions(true) }}
                         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                         placeholder="Nome completo ou digite para buscar..."
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                       
                       {showSuggestions && filteredClientes.length > 0 && (
-                        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                        <ul className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto mt-1">
                           {filteredClientes.map((c, idx) => (
                             <li
                               key={idx}
-                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b last:border-0"
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b border-gray-100 last:border-0"
                               onMouseDown={(e) => {
                                 e.preventDefault(); 
                                 handleSelectClient(c);
                               }}
                             >
-                              <div className="font-medium text-gray-800">{c.nome}</div>
+                              <div className="font-bold text-gray-900">{c.nome}</div>
                               {c.telefone && <div className="text-xs text-gray-500">{c.telefone}</div>}
                             </li>
                           ))}
@@ -786,68 +579,72 @@ const Agenda = ({ user }) => {
                     </div>
 
                     <div className="space-y-2 col-span-2">
-                      <Label>Telefone do Cliente</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone do Cliente</Label>
                       <Input 
                         value={formData.cliente_telefone} 
                         onChange={(e) => setFormData({...formData, cliente_telefone: e.target.value})}
                         placeholder="(00) 00000-0000"
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label>Serviço</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Serviço</Label>
                       <Select value={formData.servico} onValueChange={handleServicoChange}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
                           <SelectValue placeholder="Selecione o serviço" />
                         </SelectTrigger>
-                        <SelectContent>
-                          {servicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        <SelectContent className="bg-white border-gray-200 text-gray-900">
+                          {servicosDb.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Data</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data</Label>
                       <Input 
                         type="date" 
                         required 
                         value={formData.data} 
                         onChange={(e) => setFormData({...formData, data: e.target.value})}
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Hora</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora</Label>
                       <Input 
                         type="time" 
                         required 
                         value={formData.hora} 
                         onChange={(e) => setFormData({...formData, hora: e.target.value})}
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Preço (R$)</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Preço (R$)</Label>
                       <Input 
                         value={formData.preco} 
                         onChange={(e) => setFormData({...formData, preco: e.target.value})}
                         placeholder="0,00"
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Forma de Pagamento</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Forma de Pagamento</Label>
                       <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900">
                           {formasPagamento.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label>Status</Label>
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Status</Label>
                       <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Pendente">Pendente</SelectItem>
                           <SelectItem value="Confirmado">Confirmado</SelectItem>
                           <SelectItem value="Cancelado">Cancelado</SelectItem>
@@ -856,9 +653,9 @@ const Agenda = ({ user }) => {
                       </Select>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 pt-6 border-t">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                    <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white">
+                  <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="bg-white border-gray-200 text-gray-600 hover:bg-gray-50">Cancelar</Button>
+                    <Button type="submit" className="bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">
                       {editingAgendamento ? 'Salvar Alterações' : 'Criar Agendamento'}
                     </Button>
                   </div>

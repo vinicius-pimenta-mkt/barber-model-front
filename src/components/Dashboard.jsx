@@ -6,6 +6,7 @@ import Clientes from './Clientes';
 import Relatorios from './Relatorios';
 import Planos from './Planos';
 import Produtos from './Produtos';
+import Servicos from './Servicos'; // <-- NOVO IMPORT AQUI
 
 const Dashboard = ({ user, onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -22,6 +23,8 @@ const Dashboard = ({ user, onLogout }) => {
         return <Planos user={user} />;
       case 'produtos':               
         return <Produtos user={user} />;
+      case 'servicos': // <-- NOVA ROTA AQUI
+        return <Servicos user={user} />;
       default:
         return <DashboardContent user={user} />;
     }
@@ -30,7 +33,7 @@ const Dashboard = ({ user, onLogout }) => {
   return (
     <div className="flex h-screen relative overflow-hidden bg-neutral-950">
       
-      {/* IMAGEM DE FUNDO (A mesma do Login) */}
+      {/* IMAGEM DE FUNDO */}
       <img 
         src="/fundologin.png" 
         alt="Fundo Dashboard" 
@@ -40,7 +43,7 @@ const Dashboard = ({ user, onLogout }) => {
       {/* CAMADA DE CINZA COM TRANSPARÊNCIA */}
       <div className="absolute inset-0 bg-gray-500/25 z-0" />
 
-      {/* CONTEÚDO PRINCIPAL (Z-10 para ficar em cima do fundo) */}
+      {/* CONTEÚDO PRINCIPAL (Z-10) */}
       <div className="flex w-full h-full relative z-10">
         <Sidebar 
           activeSection={activeSection}

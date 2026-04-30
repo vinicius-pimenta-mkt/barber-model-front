@@ -4,41 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Calendar, Scissors, User, DollarSign, Clock, CalendarDays } from 'lucide-react';
-
-const SERVICOS_TABELA = [
-  { nome: 'Barba', preco: 30.00 },
-  { nome: 'Barba + Pézinho', preco: 40.00 },
-  { nome: 'Barba + Pigmentação', preco: 50.00 },
-  { nome: 'Barba Express', preco: 20.00 },
-  { nome: 'Bigode', preco: 10.00 },
-  { nome: 'Camuflagem (Fios brancos)', preco: 35.00 },
-  { nome: 'Cone Hindu', preco: 25.00 },
-  { nome: 'Corte', preco: 40.00 },
-  { nome: 'Corte + Pigmentação', preco: 60.00 },
-  { nome: 'Corte 1 pente + barba', preco: 50.00 },
-  { nome: 'Corte e Barba', preco: 60.00 },
-  { nome: 'Corte Infantil', preco: 45.00 },
-  { nome: 'Corte Máquina 1 pente', preco: 25.00 },
-  { nome: 'Hidratação Capilar', preco: 25.00 },
-  { nome: 'Limpeza Nasal', preco: 25.00 },
-  { nome: 'Luzes', preco: 100.00 },
-  { nome: 'Luzes e Corte', preco: 140.00 },
-  { nome: 'Navalhado', preco: 30.00 },
-  { nome: 'Navalhado + Barba', preco: 50.00 },
-  { nome: 'Pezinho', preco: 10.00 },
-  { nome: 'Pigmentação', preco: 25.00 },
-  { nome: 'Platinado', preco: 100.00 },
-  { nome: 'Platinado e Corte', preco: 140.00 },
-  { nome: 'Sobrancelha', preco: 10.00 },
-  { nome: 'Sobrancelha na fita', preco: 25.00 }
-];
+import { CheckCircle, Scissors, User, DollarSign, Clock, CalendarDays } from 'lucide-react';
 
 const AgendamentoPublico = () => {
   const [horariosLivres, setHorariosLivres] = useState([]);
   const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
+
+  // --- DADOS DINÂMICOS DO BACKEND ---
+  const [barberTwoName, setBarberTwoName] = useState('Carregando...');
+  const [servicosDb, setServicosDb] = useState([]);
 
   const [formData, setFormData] = useState({
     barbeiro: 'Miguel',
@@ -50,7 +26,20 @@ const AgendamentoPublico = () => {
     forma_pagamento: 'Dinheiro'
   });
 
-  // Lógica Original
+  useEffect(() => {
+    // 1. Busca o nome do Barbeiro 2
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
+      .then(res => res.json())
+      .then(data => setBarberTwoName(data.valor || 'Jhonatas'))
+      .catch(err => console.error("Erro ao buscar nome:", err));
+
+    // 2. Busca a lista de Serviços
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
+      .then(res => res.json())
+      .then(data => setServicosDb(data))
+      .catch(err => console.error("Erro ao buscar serviços:", err));
+  }, []);
+
   useEffect(() => {
     if (formData.data && formData.barbeiro && formData.servicoObj) {
       buscarHorarios();
@@ -61,7 +50,7 @@ const AgendamentoPublico = () => {
     setLoadingHorarios(true);
     setFormData(prev => ({ ...prev, hora: '' })); 
     try {
-      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
+      const endpoint = formData.barbeiro === barberTwoName ? 'agendamentos-jhonatas' : 'agendamentos';
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/disponibilidade?data=${formData.data}&servico=${encodeURIComponent(formData.servicoObj.nome)}`;
       
       const response = await fetch(url);
@@ -80,13 +69,13 @@ const AgendamentoPublico = () => {
     e.preventDefault();
     setSalvando(true);
     try {
-      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
+      const endpoint = formData.barbeiro === barberTwoName ? 'agendamentos-jhonatas' : 'agendamentos';
       
       const payload = {
         cliente_nome: formData.cliente_nome,
         cliente_telefone: formData.cliente_telefone,
         servico: formData.servicoObj.nome,
-        preco: formData.servicoObj.preco,
+        preco: formData.servicoObj.precoEmCentavos, // Envia em centavos para o banco
         data: formData.data,
         hora: formData.hora,
         forma_pagamento: formData.forma_pagamento,
@@ -132,12 +121,9 @@ const AgendamentoPublico = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative bg-neutral-950 overflow-x-hidden">
-      
-      {/* BACKGROUND PREMIUM */}
       <img src="/fundologin.png" alt="Fundo" className="fixed inset-0 w-full h-full object-cover z-0" />
       <div className="fixed inset-0 bg-neutral-950/40 backdrop-blur-[3px] z-10" />
 
-      {/* CABEÇALHO COM DOURADO */}
       <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-[#DEAE60]/20 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
           <img src="/logobranca.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
@@ -148,7 +134,6 @@ const AgendamentoPublico = () => {
         </div>
       </header>
 
-      {/* FORMULÁRIO */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 py-8 z-20 relative">
         <Card className="max-w-lg w-full shadow-2xl bg-neutral-900/90 border-neutral-800 backdrop-blur-md">
           
@@ -156,15 +141,13 @@ const AgendamentoPublico = () => {
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight flex items-center justify-center gap-2">
               <CalendarDays className="h-6 w-6 text-[#DEAE60]" /> Agende seu Horário
             </h1>
-            <p className="text-neutral-400 font-medium mt-1 text-sm">
-              Siga os passos abaixo
-            </p>
+            <p className="text-neutral-400 font-medium mt-1 text-sm">Siga os passos abaixo</p>
           </div>
 
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* PASSO 1: PROFISSIONAL (DOURADO NO SELECIONADO) */}
+              {/* PASSO 1: PROFISSIONAL */}
               <div className="space-y-3">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 1. Escolha o Profissional
@@ -173,8 +156,8 @@ const AgendamentoPublico = () => {
                   <Button type="button" variant="outline" className={formData.barbeiro === 'Miguel' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
                     Miguel
                   </Button>
-                  <Button type="button" variant="outline" className={formData.barbeiro === 'Jhonatas' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
-                    Jhonatas
+                  <Button type="button" variant="outline" className={formData.barbeiro === barberTwoName ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: barberTwoName})}>
+                    {barberTwoName}
                   </Button>
                 </div>
               </div>
@@ -186,15 +169,21 @@ const AgendamentoPublico = () => {
                 </Label>
                 
                 <Select required onValueChange={(nomeServico) => {
-                  const servicoEncontrado = SERVICOS_TABELA.find(s => s.nome === nomeServico);
-                  setFormData({...formData, servicoObj: servicoEncontrado});
+                  const servicoEncontrado = servicosDb.find(s => s.nome === nomeServico);
+                  if(servicoEncontrado) {
+                    setFormData({...formData, servicoObj: { 
+                      nome: servicoEncontrado.nome, 
+                      precoExibicao: servicoEncontrado.preco / 100, // Transforma 3000 em 30.00 para exibir
+                      precoEmCentavos: servicoEncontrado.preco // Guarda o original para enviar ao backend
+                    }});
+                  }
                 }}>
                   <SelectTrigger className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]">
-                    <SelectValue placeholder="Selecione o Serviço" />
+                    <SelectValue placeholder={servicosDb.length > 0 ? "Selecione o Serviço" : "Carregando serviços..."} />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
-                    {SERVICOS_TABELA.map((s) => (
-                      <SelectItem key={s.nome} value={s.nome}>{s.nome}</SelectItem>
+                    {servicosDb.map((s) => (
+                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -206,7 +195,7 @@ const AgendamentoPublico = () => {
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                       <Input 
                         readOnly 
-                        value={formData.servicoObj ? formData.servicoObj.preco.toFixed(2).replace('.', ',') : '0,00'} 
+                        value={formData.servicoObj ? formData.servicoObj.precoExibicao.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '0,00'} 
                         className="bg-neutral-950/50 text-white font-black pl-9 border-neutral-800 cursor-not-allowed h-12 focus-visible:ring-[#DEAE60]" 
                       />
                     </div>
@@ -227,57 +216,33 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              {/* PASSO 3: DATA E HORA (DOURADO NO SELECIONADO) */}
+              {/* PASSO 3: DATA E HORA */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Clock className="h-4 w-4 text-[#DEAE60]"/> 3. Data e Hora
                 </Label>
                 
-                <Input 
-                  required 
-                  type="date" 
-                  min={hojeStr} 
-                  value={formData.data} 
-                  onChange={e => setFormData({...formData, data: e.target.value})} 
-                  className="bg-neutral-950 border-neutral-800 text-white h-12 px-4 focus-visible:ring-[#DEAE60]" 
-                  style={{ colorScheme: 'dark' }} 
-                />
+                <Input required type="date" min={hojeStr} value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12 px-4 focus-visible:ring-[#DEAE60]" style={{ colorScheme: 'dark' }} />
                 
                 {formData.data && formData.servicoObj && (
                   <div className="pt-2 animate-in fade-in duration-300">
                     <Label className="text-[10px] text-neutral-500 mb-2 block font-bold uppercase tracking-widest ml-1">Horários Disponíveis:</Label>
                     {loadingHorarios ? (
-                      <div className="text-xs text-[#DEAE60] animate-pulse font-medium bg-neutral-950 p-3 rounded-lg text-center border border-neutral-800">
-                        Buscando horários para este serviço...
-                      </div>
+                      <div className="text-xs text-[#DEAE60] animate-pulse font-medium bg-neutral-950 p-3 rounded-lg text-center border border-neutral-800">Buscando horários para este serviço...</div>
                     ) : horariosLivres.length > 0 ? (
                       <div className="grid grid-cols-4 gap-2">
                         {horariosLivres.map(h => (
-                          <button
-                            key={h} type="button"
-                            onClick={() => setFormData({...formData, hora: h})}
-                            className={`p-2 rounded-lg text-sm font-bold border transition-all ${
-                              formData.hora === h 
-                                ? 'bg-[#DEAE60] text-neutral-950 border-[#DEAE60] shadow-md scale-[1.02]' 
-                                : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-[#DEAE60]'
-                            }`}
-                          >
-                            {h}
-                          </button>
+                          <button key={h} type="button" onClick={() => setFormData({...formData, hora: h})} className={`p-2 rounded-lg text-sm font-bold border transition-all ${formData.hora === h ? 'bg-[#DEAE60] text-neutral-950 border-[#DEAE60] shadow-md scale-[1.02]' : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-[#DEAE60]'}`}>{h}</button>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-xs text-red-400 bg-red-950/30 p-3 rounded-lg border border-red-900/30 text-center font-bold">
-                        Nenhum horário livre para este dia.
-                      </div>
+                      <div className="text-xs text-red-400 bg-red-950/30 p-3 rounded-lg border border-red-900/30 text-center font-bold">Nenhum horário livre para este dia.</div>
                     )}
                   </div>
                 )}
                 
                 {formData.data && !formData.servicoObj && (
-                  <div className="text-xs text-amber-400 bg-amber-950/30 p-3 rounded-lg border border-amber-900/30 text-center font-bold">
-                    Selecione um serviço primeiro para ver os horários.
-                  </div>
+                  <div className="text-xs text-amber-400 bg-amber-950/30 p-3 rounded-lg border border-amber-900/30 text-center font-bold">Selecione um serviço primeiro.</div>
                 )}
               </div>
 
@@ -292,20 +257,12 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                disabled={salvando || !formData.hora || !formData.servicoObj || !formData.cliente_nome} 
-                className="w-full bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 h-14 text-lg font-black shadow-xl shadow-black/30 mt-6 uppercase tracking-tighter"
-              >
+              <Button type="submit" disabled={salvando || !formData.hora || !formData.servicoObj || !formData.cliente_nome} className="w-full bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 h-14 text-lg font-black shadow-xl shadow-black/30 mt-6 uppercase tracking-tighter">
                 {salvando ? 'Processando...' : 'Confirmar Agendamento'}
               </Button>
             </form>
           </CardContent>
         </Card>
-        
-        <p className="mt-8 text-center text-[10px] text-neutral-500 uppercase tracking-widest">
-          Desenvolvido por UNV Tech | Agendamento Online v1.0
-        </p>
       </main>
     </div>
   );

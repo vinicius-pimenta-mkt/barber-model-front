@@ -54,7 +54,7 @@ const Agenda = ({ user }) => {
     localStorage.setItem('barberTwoName', tempName.trim());
     setBarberTwoName(tempName.trim());
     setNameDialogOpen(false);
-    // Recarrega a página para atualizar todo o sistema
+    // Recarrega a página para atualizar todo o sistema visualmente
     window.location.reload(); 
   };
   // --------------------------------
@@ -81,7 +81,7 @@ const Agenda = ({ user }) => {
     preco: '',
     forma_pagamento: 'Dinheiro',
     observacoes: '',
-    barber: isJhonatas ? 'Jhonatas' : 'Miguel' // No banco, continuará salvando como Jhonatas
+    barber: isJhonatas ? 'Jhonatas' : 'Miguel' // No banco, continuará salvando a role raiz
   });
 
   const [blockData, setBlockData] = useState({
@@ -483,8 +483,8 @@ const Agenda = ({ user }) => {
   };
 
   const renderTable = (barbeiroKey) => {
-    const isBarbeiro2 = barbeiroKey === 'Jhonatas';
-    const displayNome = isBarbeiro2 ? barberTwoName : barbeiroKey;
+    // Altera o título de 'Jhonatas' para o nome configurado
+    const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barbeiroKey;
 
     const filtrados = agendamentos.filter(a => {
       const matchBarber = a.barber === barbeiroKey;
@@ -573,6 +573,7 @@ const Agenda = ({ user }) => {
 
   return (
     <div className="space-y-6 pt-8 sm:pt-4">
+      
       {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
@@ -597,7 +598,10 @@ const Agenda = ({ user }) => {
                 <div className="py-4 space-y-3">
                   <p className="text-xs text-gray-500">Este nome substituirá visualmente o nome "Jhonatas" em todas as telas do sistema para você.</p>
                   <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Nome de Exibição</Label>
-                  <Input value={tempName} onChange={(e) => setTempName(e.target.value)} />
+                  <Input 
+                    value={tempName} 
+                    onChange={(e) => setTempName(e.target.value)} 
+                  />
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setNameDialogOpen(false)}>Cancelar</Button>
@@ -609,7 +613,7 @@ const Agenda = ({ user }) => {
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          {/* Filtro de data mantido no topo no mobile */}
+          {/* Filtro de data */}
           <div className="w-full sm:w-auto">
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
@@ -636,7 +640,6 @@ const Agenda = ({ user }) => {
             </Popover>
           </div>
 
-          {/* Botões de ação lado a lado no mobile na parte inferior do cabeçalho */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
               <DialogTrigger asChild>
@@ -654,7 +657,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2">
                       <Label>Agenda(s) a bloquear</Label>
                       <Select value={blockData.barber} onValueChange={(v) => setBlockData({...blockData, barber: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Ambos">Geral (Ambos)</SelectItem>
                           <SelectItem value="Miguel">Apenas Miguel</SelectItem>
@@ -666,24 +671,46 @@ const Agenda = ({ user }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Data de Início</Label>
-                      <Input type="date" required value={blockData.data_inicio} onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} />
+                      <Input 
+                        type="date" 
+                        required 
+                        value={blockData.data_inicio} 
+                        onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Data Final</Label>
-                      <Input type="date" required value={blockData.data_fim} onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} />
+                      <Input 
+                        type="date" 
+                        required 
+                        value={blockData.data_fim} 
+                        onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Hora Inicial</Label>
-                      <Input type="time" required value={blockData.hora_inicio} onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} />
+                      <Input 
+                        type="time" 
+                        required 
+                        value={blockData.hora_inicio} 
+                        onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Hora Final</Label>
-                      <Input type="time" required value={blockData.hora_fim} onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} />
+                      <Input 
+                        type="time" 
+                        required 
+                        value={blockData.hora_fim} 
+                        onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2 col-span-2">
                       <Label>Gerar bloqueios a cada:</Label>
                       <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="15">15 Minutos</SelectItem>
                           <SelectItem value="30">30 Minutos</SelectItem>
@@ -717,7 +744,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2 col-span-2">
                       <Label>Barbeiro</Label>
                       <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Miguel">Miguel</SelectItem>
                           <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
@@ -726,7 +755,6 @@ const Agenda = ({ user }) => {
                     </div>
                     )}
                     
-                    {/* --- INÍCIO DA MÁGICA: CAMPO INTELIGENTE --- */}
                     <div className="space-y-2 col-span-2 relative">
                       <Label>Nome do Cliente</Label>
                       <Input 
@@ -738,7 +766,6 @@ const Agenda = ({ user }) => {
                         placeholder="Nome completo ou digite para buscar..."
                       />
                       
-                      {/* Lista suspensa de clientes */}
                       {showSuggestions && filteredClientes.length > 0 && (
                         <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
                           {filteredClientes.map((c, idx) => (
@@ -757,7 +784,6 @@ const Agenda = ({ user }) => {
                         </ul>
                       )}
                     </div>
-                    {/* --- FIM DA MÁGICA --- */}
 
                     <div className="space-y-2 col-span-2">
                       <Label>Telefone do Cliente</Label>
@@ -770,7 +796,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2 col-span-2">
                       <Label>Serviço</Label>
                       <Select value={formData.servico} onValueChange={handleServicoChange}>
-                        <SelectTrigger><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o serviço" />
+                        </SelectTrigger>
                         <SelectContent>
                           {servicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
@@ -805,7 +833,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2">
                       <Label>Forma de Pagamento</Label>
                       <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {formasPagamento.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                         </SelectContent>
@@ -814,7 +844,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2 col-span-2">
                       <Label>Status</Label>
                       <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Pendente">Pendente</SelectItem>
                           <SelectItem value="Confirmado">Confirmado</SelectItem>

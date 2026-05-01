@@ -1,55 +1,46 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  DollarSign, 
-  Clock,
-  CheckCircle,
-  User
-} from 'lucide-react';
+import { Users, DollarSign, Clock, CheckCircle, User } from 'lucide-react';
 
 const DashboardContent = () => {
+  // DADOS DINÂMICOS DE NOMES
+  const [barberOneName, setBarberOneName] = useState('Miguel');
+  const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
+
   const [dashboardData, setDashboardData] = useState({
-    atendimentosHoje: 0,
-    receitaDia: 0,
-    servicosRealizados: 0,
-    pendentesFuturos: 0,
-    agendamentos: [],
-    agoraHora: "00:00"
+    atendimentosHoje: 0, receitaDia: 0, servicosRealizados: 0, pendentesFuturos: 0, agendamentos: [], agoraHora: "00:00"
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchNomes();
     const interval = setInterval(fetchDashboardData, 300000);
     return () => clearInterval(interval);
   }, []);
 
+  const fetchNomes = async () => {
+    try {
+      const [res1, res2] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
+      ]);
+      if (res1.ok) setBarberOneName((await res1.json()).valor);
+      if (res2.ok) setBarberTwoName((await res2.json()).valor);
+    } catch (err) { console.error(err); }
+  };
+
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/relatorios/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        setDashboardData(await response.json());
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-    } finally {
-      setLoading(false);
-    }
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/relatorios/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (response.ok) setDashboardData(await response.json());
+    } catch (error) { console.error('Erro ao carregar dados:', error); } finally { setLoading(false); }
   };
 
   const formatarHorario = (hora) => hora?.substring(0, 5) || "";
-  
-  const formatarData = (dataStr) => {
-    if (!dataStr) return "";
-    const [ano, mes, dia] = dataStr.split('-');
-    return `${dia}/${mes}`;
-  };
+  const formatarData = (dataStr) => { if (!dataStr) return ""; const [, mes, dia] = dataStr.split('-'); return `${dia}/${mes}`; };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -60,38 +51,25 @@ const DashboardContent = () => {
     }
   };
 
-  const hoje = new Date();
-  const hojeStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
-
+  const hojeStr = new Date().toISOString().split('T')[0];
   const agendamentosMiguel = dashboardData.agendamentos.filter(a => a.barber === 'Miguel' && a.status !== 'Bloqueado');
   const agendamentosJhonatas = dashboardData.agendamentos.filter(a => a.barber === 'Jhonatas' && a.status !== 'Bloqueado');
 
   const cards = [
-    { title: 'Total de Agendamentos', value: dashboardData.atendimentosHoje, icon: Users, color: 'text-[#DEAE60]', label: 'marcados para hoje' },
+    { title: 'Agendamentos', value: dashboardData.atendimentosHoje, icon: Users, color: 'text-[#DEAE60]', label: 'marcados para hoje' },
     { title: 'Receita do Dia', value: `R$ ${Number(dashboardData.receitaDia || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-green-500', label: 'faturamento confirmado' },
-    { title: 'Serviços Realizados', value: dashboardData.servicosRealizados, icon: CheckCircle, color: 'text-blue-500', label: 'concluídos hoje' },
+    { title: 'Realizados', value: dashboardData.servicosRealizados, icon: CheckCircle, color: 'text-blue-500', label: 'concluídos hoje' },
     { title: 'Pendentes', value: dashboardData.pendentesFuturos, icon: Clock, color: 'text-amber-500', label: 'próximas horas' },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          {/* Loading em Dourado */}
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DEAE60] mx-auto"></div>
-          <p className="mt-4 text-neutral-400 font-medium tracking-wide">Carregando painel...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DEAE60] mx-auto"></div></div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pt-8 sm:pt-4">
-      
       <div className="flex items-center space-x-4 mb-6">
         <img src="/logobranca.png" alt="Miguel Alves Barbearia" className="h-12 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
         <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Dashboard</h1>
           <p className="text-neutral-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gestão em tempo real - {new Date().toLocaleDateString('pt-BR')}</p>
         </div>
       </div>
@@ -100,11 +78,11 @@ const DashboardContent = () => {
         {cards.map((card, idx) => (
           <Card key={idx} className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">{card.title}</CardTitle>
+              <CardTitle className="text-[11px] font-semibold text-neutral-400 uppercase tracking-widest">{card.title}</CardTitle>
               <card.icon className={`h-5 w-5 ${card.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-white">{card.value}</div>
+              <div className="text-3xl font-bold text-white">{card.value}</div>
               <p className="text-xs text-neutral-500 mt-1">{card.label}</p>
             </CardContent>
           </Card>
@@ -112,92 +90,53 @@ const DashboardContent = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* COLUNA MIGUEL */}
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
           <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
-            <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
-              <User className="h-5 w-5 text-[#DEAE60]" />
-              Próximos: Miguel
+            <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
+              <User className="h-5 w-5 text-[#DEAE60]" /> Próximos: {barberOneName}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-neutral-800">
-              {agendamentosMiguel.length > 0 ? (
-                agendamentosMiguel.map((a) => (
-                  <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      {/* Avatar Dourado */}
-                      <div className="w-10 h-10 bg-neutral-950 text-[#DEAE60] rounded-full flex items-center justify-center font-black border border-[#DEAE60]/30 shadow-inner">
-                        {a.cliente_nome?.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-bold text-neutral-100">{a.cliente_nome}</p>
-                        <p className="text-xs text-neutral-400">{a.servico}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-black text-white text-lg">
-                        {formatarHorario(a.hora)} 
-                        <span className="text-[10px] text-neutral-500 ml-1 font-normal">
-                          ({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})
-                        </span>
-                      </p>
-                      <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase`}>
-                        {a.status}
-                      </Badge>
-                    </div>
+              {agendamentosMiguel.length > 0 ? agendamentosMiguel.map((a) => (
+                <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-neutral-950 text-[#DEAE60] rounded-full flex items-center justify-center font-bold border border-[#DEAE60]/30 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
+                    <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
                   </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>
-              )}
+                  <div className="text-right">
+                    <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
+                    <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
+                  </div>
+                </div>
+              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>}
             </div>
           </CardContent>
         </Card>
 
-        {/* COLUNA JHONATAS */}
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
           <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
-            <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
-              <User className="h-5 w-5 text-neutral-400" />
-              Próximos: Jhonatas
+            <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
+              <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberTwoName}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-neutral-800">
-              {agendamentosJhonatas.length > 0 ? (
-                agendamentosJhonatas.map((a) => (
-                  <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-black border border-neutral-700 shadow-inner">
-                        {a.cliente_nome?.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-bold text-neutral-100">{a.cliente_nome}</p>
-                        <p className="text-xs text-neutral-400">{a.servico}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-black text-white text-lg">
-                        {formatarHorario(a.hora)}
-                        <span className="text-[10px] text-neutral-500 ml-1 font-normal">
-                          ({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})
-                        </span>
-                      </p>
-                      <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase`}>
-                        {a.status}
-                      </Badge>
-                    </div>
+              {agendamentosJhonatas.length > 0 ? agendamentosJhonatas.map((a) => (
+                <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
+                    <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
                   </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>
-              )}
+                  <div className="text-right">
+                    <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
+                    <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
+                  </div>
+                </div>
+              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>}
             </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

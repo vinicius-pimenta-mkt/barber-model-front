@@ -1,15 +1,4 @@
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  FileText, 
-  Users, 
-  LogOut,
-  Menu,
-  X,
-  UserCheck,
-  Package,
-  Scissors // <-- NOVO ÍCONE
-} from 'lucide-react';
+import { LayoutDashboard, Calendar, FileText, Users, LogOut, Menu, X, UserCheck, Package, Scissors } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
@@ -17,9 +6,24 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isJhonatas = user?.role === 'jhonatas';
   
-  // NOME DINÂMICO
-  const barberTwoName = localStorage.getItem('barberTwoName') || 'Jhonatas';
-  
+  // DADOS DINÂMICOS DE NOMES
+  const [barberOneName, setBarberOneName] = useState('Miguel');
+  const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
+
+  useEffect(() => {
+    const fetchNomes = async () => {
+      try {
+        const [res1, res2] = await Promise.all([
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
+        ]);
+        if (res1.ok) setBarberOneName((await res1.json()).valor);
+        if (res2.ok) setBarberTwoName((await res2.json()).valor);
+      } catch (err) { console.error(err); }
+    };
+    fetchNomes();
+  }, []);
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
@@ -27,7 +31,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
     { id: 'produtos', label: 'Estoque', icon: Package },
     { id: 'relatorios', label: 'Relatórios', icon: FileText },
     ...(!isJhonatas ? [
-      { id: 'servicos', label: 'Serviços', icon: Scissors }, // <-- BOTÃO NOVO AQUI
+      { id: 'servicos', label: 'Serviços', icon: Scissors },
       { id: 'planos', label: 'Planos', icon: UserCheck }
     ] : []),
   ];
@@ -42,6 +46,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           <img src="/logobranca.png" alt="Logo" className="h-8 w-auto" />
+          {/* FONTES MAIS SUAVES: De font-black para font-bold */}
           <span className="text-white font-bold text-sm uppercase tracking-tighter">Miguel Alves</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
@@ -55,8 +60,9 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
             <div className="flex items-center space-x-3">
               <img src="/logobranca.png" alt="Logo" className="h-10 w-auto" />
               <div>
-                <h2 className="text-lg font-black text-white leading-none uppercase tracking-tighter">Miguel Alves</h2>
-                <p className="text-[10px] text-[#DEAE60] font-bold uppercase tracking-widest mt-1">Barbershop</p>
+                {/* FONTES MAIS SUAVES: De font-black para font-extrabold */}
+                <h2 className="text-lg font-extrabold text-white leading-none uppercase tracking-tighter">Miguel Alves</h2>
+                <p className="text-[10px] text-[#DEAE60] font-semibold uppercase tracking-widest mt-1">Barbershop</p>
               </div>
             </div>
           </div>
@@ -69,7 +75,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
                 <button 
                   key={item.id} 
                   onClick={() => handleMenuItemClick(item.id)} 
-                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${isActive ? 'bg-[#DEAE60] text-neutral-950 shadow-lg shadow-black/30 font-bold' : 'text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100'}`}
+                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${isActive ? 'bg-[#DEAE60] text-neutral-950 shadow-lg shadow-black/30 font-semibold' : 'text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100'}`}
                 >
                   <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-neutral-950' : 'text-neutral-500'}`} /> {item.label}
                 </button>
@@ -83,8 +89,9 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
                 <span className="text-[#DEAE60] font-bold text-xs uppercase">{isJhonatas ? barberTwoName.charAt(0) : 'MA'}</span>
               </div>
               <div className="min-w-0">
+                {/* FONTES MAIS SUAVES: De font-black para font-bold */}
                 <p className="text-sm font-bold text-white truncate uppercase tracking-tighter">
-                  {isJhonatas ? barberTwoName : 'Miguel Alves'}
+                  {isJhonatas ? barberTwoName : barberOneName}
                 </p>
                 <p className="text-[10px] text-neutral-500 font-medium">{isJhonatas ? 'Barbeiro' : 'Administrador'}</p>
               </div>

@@ -5,31 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  Legend,
-  Cell,
-  PieChart,
-  Pie
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, Legend, Cell, PieChart, Pie
 } from "recharts";
 import {
-  BarChart3,
-  TrendingUp,
-  Users,
-  Download,
-  Calendar,
-  User,
-  Scissors,
-  CreditCard,
-  DollarSign,
-  Package 
+  BarChart3, TrendingUp, Users, Download, Calendar, User, Scissors,
+  CreditCard, DollarSign, Package 
 } from "lucide-react";
 import { format, subDays } from 'date-fns';
 
@@ -38,7 +19,7 @@ const Relatorios = ({ user }) => {
   const [periodo, setPeriodo] = useState("mes");
   const [barber, setBarber] = useState(isJhonatas ? "Jhonatas" : "Geral");
   
-  // DADOS DINÁMICOS DE NOMES
+  // DADOS DINÂMICOS DE NOMES
   const [barberOneName, setBarberOneName] = useState('Miguel');
   const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
 
@@ -51,7 +32,7 @@ const Relatorios = ({ user }) => {
   
   const [loading, setLoading] = useState(true);
 
-  // EFECTO PARA BUSCAR OS NOMES DOS BARBEIROS
+  // EFETUA A BUSCA DOS NOMES DOS BARBEIROS
   useEffect(() => {
     const fetchNomes = async () => {
       try {
@@ -74,7 +55,7 @@ const Relatorios = ({ user }) => {
     fetchNomes();
   }, []);
 
-  // EFECTO PARA BUSCAR OS DATOS DOS RELATORIOS
+  // EFETUA A BUSCA DOS DADOS DOS RELATÓRIOS
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -118,7 +99,7 @@ const Relatorios = ({ user }) => {
           }
         }
       } catch (err) {
-        console.error("Erro ao buscar relatorios:", err);
+        console.error("Erro ao buscar relatórios:", err);
       } finally {
         setLoading(false);
       }
@@ -180,7 +161,7 @@ const Relatorios = ({ user }) => {
               </div>
             ))
           ) : (
-            <p className="text-center text-gray-400 py-4 text-sm italic">Sem servizos para {nomeExibicao}</p>
+            <p className="text-center text-gray-400 py-4 text-sm italic">Sem serviços para {nomeExibicao}</p>
           )}
         </div>
       </div>
@@ -203,11 +184,11 @@ const Relatorios = ({ user }) => {
   return (
     <div className="space-y-6">
       
-      {/* CABECEIRA */}
+      {/* CABEÇALHO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Relatorios Profesionais</h1>
-          <p className="text-gray-600">Análise detallada de rendemento e facturación</p>
+          <h1 className="text-3xl font-semibold text-gray-900">Relatórios Profissionais</h1>
+          <p className="text-gray-600 font-medium">Análise detalhada de performance e faturamento</p>
         </div>
         <Button 
           onClick={exportarRelatorio} 
@@ -226,14 +207,14 @@ const Relatorios = ({ user }) => {
             <div className="flex-1">
               <label className="text-xs font-semibold text-gray-500 uppercase">Período</label>
               <Select value={periodo} onValueChange={setPeriodo}>
-                <SelectTrigger className="border-none shadow-none p-0 h-auto font-semibold focus:ring-0 text-lg">
+                <SelectTrigger className="border-none shadow-none p-0 h-auto font-medium focus:ring-0 text-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hoje">Hoxe</SelectItem>
-                  <SelectItem value="ontem">Onte</SelectItem>
+                  <SelectItem value="hoje">Hoje</SelectItem>
+                  <SelectItem value="ontem">Ontem</SelectItem>
                   <SelectItem value="semana">Última Semana</SelectItem>
-                  <SelectItem value="mes">Último Mes</SelectItem>
+                  <SelectItem value="mes">Último Mês</SelectItem>
                   <SelectItem value="ano">Último Ano</SelectItem>
                 </SelectContent>
               </Select>
@@ -248,11 +229,11 @@ const Relatorios = ({ user }) => {
               <div className="flex-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase">Barbeiro</label>
                 <Select value={barber} onValueChange={setBarber}>
-                  <SelectTrigger className="border-none shadow-none p-0 h-auto font-semibold focus:ring-0 text-lg">
+                  <SelectTrigger className="border-none shadow-none p-0 h-auto font-medium focus:ring-0 text-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Geral">Xeral (Todos)</SelectItem>
+                    <SelectItem value="Geral">Geral (Todos)</SelectItem>
                     <SelectItem value="Miguel">{barberOneName}</SelectItem>
                     <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
                   </SelectContent>
@@ -263,26 +244,26 @@ const Relatorios = ({ user }) => {
         )}
       </div>
 
-      {/* SECCIÓNS (TABS) */}
+      {/* SEÇÕES (TABS) */}
       <Tabs defaultValue="receita" className="space-y-6">
         <TabsList className="bg-gray-100 p-1 rounded-xl no-print">
           <TabsTrigger value="servicos" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
-            Servizos
+            Serviços
           </TabsTrigger>
           <TabsTrigger value="receita" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
-            Facturación
+            Faturamento
           </TabsTrigger>
           <TabsTrigger value="clientes" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
             Clientes
           </TabsTrigger>
         </TabsList>
 
-        {/* TAB: SERVIZOS */}
+        {/* TAB: SERVIÇOS */}
         <TabsContent value="servicos" className="space-y-6">
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-amber-600" /> Desempeño por Servizo
+                <BarChart3 className="h-5 w-5 text-amber-600" /> Desempenho por Serviço
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -308,7 +289,7 @@ const Relatorios = ({ user }) => {
               ) : (
                 <div className="h-[350px] flex flex-col items-center justify-center text-gray-400">
                   <Scissors className="h-12 w-12 mb-2 opacity-20" />
-                  <p>Sen datos para amosar o gráfico</p>
+                  <p>Sem dados para exibir o gráfico</p>
                 </div>
               )}
             </CardContent>
@@ -316,7 +297,7 @@ const Relatorios = ({ user }) => {
 
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold">Detalle</CardTitle>
+              <CardTitle className="text-lg font-semibold">Detalhamento</CardTitle>
             </CardHeader>
             <CardContent>
               <div className={`grid grid-cols-1 ${!isJhonatas ? 'md:grid-cols-2' : ''} gap-8`}>
@@ -327,12 +308,12 @@ const Relatorios = ({ user }) => {
           </Card>
         </TabsContent>
 
-        {/* TAB: FACTURACIÓN */}
+        {/* TAB: FATURAMENTO */}
         <TabsContent value="receita" className="space-y-6">
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <TrendingUp className="h-5 w-5 text-green-600" /> Evolución da Receita {periodo === 'hoje' || periodo === 'ontem' ? '(Por Hora)' : ''}
+                <TrendingUp className="h-5 w-5 text-green-600" /> Evolução de Faturamento {periodo === 'hoje' || periodo === 'ontem' ? '(Por Hora)' : ''}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -360,7 +341,7 @@ const Relatorios = ({ user }) => {
                 </div>
               ) : (
                 <div className="h-[350px] flex flex-col items-center justify-center text-gray-400 italic">
-                  Ningunha facturación rexistrada no período seleccionado.
+                  Nenhum faturamento registrado no período selecionado.
                 </div>
               )}
             </CardContent>
@@ -369,7 +350,7 @@ const Relatorios = ({ user }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Resumo Financeiro (Servizos)</CardTitle>
+                <CardTitle className="text-lg font-semibold">Resumo Financeiro (Serviços)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -383,7 +364,7 @@ const Relatorios = ({ user }) => {
                         <p className="font-semibold text-sm">
                           R$ {p.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                         </p>
-                        {p.quantidade > 0 && <p className="text-[10px] text-gray-500">{p.quantidade} servizos</p>}
+                        {p.quantidade > 0 && <p className="text-[10px] text-gray-500 font-medium">{p.quantidade} serviços</p>}
                       </div>
                     </div>
                   ))}
@@ -392,8 +373,8 @@ const Relatorios = ({ user }) => {
                     <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                       <div className="flex items-center gap-3">
                         <DollarSign className="h-5 w-5 text-amber-600" />
-                        <span className="text-sm font-bold text-amber-900">
-                          TOTAL BRUTO (SERVIZOS)
+                        <span className="text-sm font-semibold text-amber-900">
+                          TOTAL BRUTO (SERVIÇOS)
                         </span>
                       </div>
                       <div className="text-right">
@@ -407,8 +388,8 @@ const Relatorios = ({ user }) => {
                       <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
                         <div className="flex items-center gap-3">
                           <Badge className="bg-green-600 font-medium">45%</Badge>
-                          <span className="text-sm font-bold text-green-900">
-                            COMISIÓN {barberTwoName.toUpperCase()}
+                          <span className="text-sm font-semibold text-green-900">
+                            COMISSÃO {barberTwoName.toUpperCase()}
                           </span>
                         </div>
                         <div className="text-right">
@@ -426,7 +407,7 @@ const Relatorios = ({ user }) => {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                  <CreditCard className="h-5 w-5 text-blue-600" /> Pagamentos (Servizos)
+                  <CreditCard className="h-5 w-5 text-blue-600" /> Pagamentos (Serviços)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -454,7 +435,7 @@ const Relatorios = ({ user }) => {
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <p className="text-center text-gray-400 py-10 italic">Sen datos de pagamento.</p>
+                  <p className="text-center text-gray-400 py-10 italic">Sem dados de pagamento.</p>
                 )}
               </CardContent>
             </Card>
@@ -475,7 +456,7 @@ const Relatorios = ({ user }) => {
                         <th className="px-6 py-4">Produto</th>
                         <th className="px-6 py-4 text-center">Pagamento</th>
                         <th className="px-6 py-4 text-center">Unidades</th>
-                        <th className="px-6 py-4 text-right">Receita Xerada</th>
+                        <th className="px-6 py-4 text-right">Receita Gerada</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -494,10 +475,10 @@ const Relatorios = ({ user }) => {
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-amber-100/50 font-bold border-t-2 border-amber-200">
+                    <tfoot className="bg-amber-100/50 font-semibold border-t-2 border-amber-200">
                       <tr>
-                        <td colSpan="3" className="px-6 py-4 text-right text-amber-900">TOTAL EN VENDAS DE PRODUTOS:</td>
-                        <td className="px-6 py-4 text-right text-amber-700 text-lg">
+                        <td colSpan="3" className="px-6 py-4 text-right text-amber-900">TOTAL EM VENDAS DE PRODUTOS:</td>
+                        <td className="px-6 py-4 text-right text-amber-700 text-lg font-bold">
                           R$ {totalProdutos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                         </td>
                       </tr>
@@ -505,7 +486,7 @@ const Relatorios = ({ user }) => {
                   </table>
                 </div>
               ) : (
-                <p className="text-center text-gray-400 py-6 italic">Ningún produto foi vendido neste período.</p>
+                <p className="text-center text-gray-400 py-6 italic">Nenhum produto foi vendido neste período.</p>
               )}
             </CardContent>
           </Card>
@@ -529,7 +510,7 @@ const Relatorios = ({ user }) => {
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-900">{c.nome}</h4>
-                        <p className="text-xs text-gray-500">{c.visitas} visitas no período</p>
+                        <p className="text-xs text-gray-500 font-medium">{c.visitas} visitas no período</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -541,7 +522,7 @@ const Relatorios = ({ user }) => {
                   </div>
                 ))}
                 {frequenciaClientes.length === 0 && (
-                  <div className="text-center py-10 text-gray-400 italic">Ningún cliente rexistrado no período.</div>
+                  <div className="text-center py-10 text-gray-400 italic">Nenhum cliente registrado no período.</div>
                 )}
               </div>
             </CardContent>

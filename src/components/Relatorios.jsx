@@ -31,14 +31,13 @@ import {
   DollarSign,
   Package 
 } from "lucide-react";
-import { format, subDays } from 'date-fns';
 
 const Relatorios = ({ user }) => {
   const isJhonatas = user?.role === 'jhonatas';
   const [periodo, setPeriodo] = useState("mes");
   const [barber, setBarber] = useState(isJhonatas ? "Jhonatas" : "Geral");
   
-  // --- AJUSTE 1: NOMES DINÂMICOS ---
+  // --- NOMES DINÂMICOS ---
   const [barberOneName, setBarberOneName] = useState('Miguel');
   const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
 
@@ -68,22 +67,17 @@ const Relatorios = ({ user }) => {
     fetchNomes();
   }, []);
 
+  // BUSCAR DADOS DO RELATÓRIO
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
         let apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/relatorios/resumo`;
+        
+        // AQUI ESTÁ A CORREÇÃO: Agora enviamos a palavra-chave correta (ex: periodo=hoje) 
+        // para que o Backend saiba que precisa quebrar o gráfico por hora.
         let params = `?periodo=${periodo}&barber=${barber}`;
-
-        const today = format(new Date(), 'yyyy-MM-dd');
-        const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
-
-        if (periodo === 'hoje') {
-          params = `?data_inicio=${today}&data_fim=${today}&barber=${barber}`;
-        } else if (periodo === 'ontem') {
-          params = `?data_inicio=${yesterday}&data_fim=${yesterday}&barber=${barber}`;
-        }
 
         const response = await fetch(apiUrl + params, {
           headers: {
@@ -160,7 +154,6 @@ const Relatorios = ({ user }) => {
                   <p className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mt-0.5">Quantidade: {barbeiroKey === 'Miguel' ? s.miguel_qty : s.jhonatas_qty}</p>
                 </div>
                 <div className="text-right">
-                  {/* AJUSTE 2: FONTES MENOS GROSSAS */}
                   <span className="font-bold text-base text-gray-900">
                     {barbeiroKey === 'Miguel' ? s.miguel_qty : s.jhonatas_qty}
                   </span>

@@ -306,7 +306,6 @@ const Relatorios = ({ user }) => {
           <Card className="bg-white/90 backdrop-blur-md border-white/40 shadow-xl">
             <CardHeader className="border-b border-gray-200/50 bg-white/50">
               <CardTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight text-gray-900">
-                {/* AJUSTE 3: GRÁFICO POR HORA */}
                 <TrendingUp className="h-5 w-5 text-green-600" /> Evolução de Faturamento {(periodo === 'hoje' || periodo === 'ontem') ? '(Por Hora)' : ''}
               </CardTitle>
             </CardHeader>
@@ -316,9 +315,36 @@ const Relatorios = ({ user }) => {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={receitaTempos} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                      <XAxis dataKey="periodo" tick={{ fontSize: 11, fill: '#4b5563', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                      <XAxis 
+                        dataKey="periodo" 
+                        tick={{ fontSize: 11, fill: '#4b5563', fontWeight: 600 }} 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tickFormatter={(val) => {
+                          if (!val) return '';
+                          const strVal = String(val);
+                          // Se já for formato de hora (ex: 14h), mantém
+                          if (strVal.includes('h')) return strVal;
+                          // Se for formato de data (ex: 2026-05-25), transforma para DD/MM
+                          if (strVal.includes('-')) {
+                            const parts = strVal.split('-');
+                            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+                          }
+                          return strVal;
+                        }}
+                      />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#4b5563', fontWeight: 600 }} tickFormatter={(val) => `R$${val}`} />
                       <Tooltip 
+                        labelFormatter={(label) => {
+                          if (!label) return '';
+                          const strLabel = String(label);
+                          if (strLabel.includes('h')) return `Horário: ${strLabel}`;
+                          if (strLabel.includes('-')) {
+                            const parts = strLabel.split('-');
+                            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                          }
+                          return strLabel;
+                        }}
                         formatter={(value) => [`R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`, 'Receita']}
                         contentStyle={{borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
                       />

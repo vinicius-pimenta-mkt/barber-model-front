@@ -4,9 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { Users, DollarSign, Clock, CheckCircle, User } from 'lucide-react';
 
 const DashboardContent = () => {
-  // DADOS DINÂMICOS DE NOMES
+  // DADOS DINÂMICOS DE NOMES (AGORA COM OS 3)
   const [barberOneName, setBarberOneName] = useState('Fabrício');
   const [barberTwoName, setBarberTwoName] = useState('Gabriel');
+  const [barberThreeName, setBarberThreeName] = useState('Lucas');
 
   const [dashboardData, setDashboardData] = useState({
     atendimentosHoje: 0, receitaDia: 0, servicosRealizados: 0, pendentesFuturos: 0, agendamentos: [], agoraHora: "00:00"
@@ -22,12 +23,14 @@ const DashboardContent = () => {
 
   const fetchNomes = async () => {
     try {
-      const [res1, res2] = await Promise.all([
+      const [res1, res2, res3] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
       ]);
       if (res1.ok) setBarberOneName((await res1.json()).valor || 'Fabrício');
       if (res2.ok) setBarberTwoName((await res2.json()).valor || 'Gabriel');
+      if (res3.ok) setBarberThreeName((await res3.json()).valor || 'Lucas');
     } catch (err) { console.error(err); }
   };
 
@@ -52,8 +55,11 @@ const DashboardContent = () => {
   };
 
   const hojeStr = new Date().toISOString().split('T')[0];
+  
+  // Separando os agendamentos pelas 3 agendas
   const agendamentosMiguel = dashboardData.agendamentos.filter(a => a.barber === 'Miguel' && a.status !== 'Bloqueado');
   const agendamentosJhonatas = dashboardData.agendamentos.filter(a => a.barber === 'Jhonatas' && a.status !== 'Bloqueado');
+  const agendamentosLucas = dashboardData.agendamentos.filter(a => a.barber === 'Lucas' && a.status !== 'Bloqueado');
 
   const cards = [
     { title: 'Agendamentos', value: dashboardData.atendimentosHoje, icon: Users, color: 'text-[#DEAE60]', label: 'marcados para hoje' },
@@ -89,7 +95,10 @@ const DashboardContent = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* GRID ATUALIZADO PARA 3 COLUNAS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* CARD DO FABRÍCIO */}
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
           <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
             <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
@@ -109,11 +118,12 @@ const DashboardContent = () => {
                     <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
                   </div>
                 </div>
-              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>}
+              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
             </div>
           </CardContent>
         </Card>
 
+        {/* CARD DO GABRIEL */}
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
           <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
             <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
@@ -133,10 +143,36 @@ const DashboardContent = () => {
                     <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
                   </div>
                 </div>
-              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento futuro nas próximas 24h.</div>}
+              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
             </div>
           </CardContent>
         </Card>
+
+        {/* CARD DO LUCAS */}
+        <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+          <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
+            <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
+              <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberThreeName}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-neutral-800">
+              {agendamentosLucas.length > 0 ? agendamentosLucas.map((a) => (
+                <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
+                    <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
+                    <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
+                  </div>
+                </div>
+              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   );

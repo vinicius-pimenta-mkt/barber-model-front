@@ -5,8 +5,8 @@ import { Users, DollarSign, Clock, CheckCircle, User } from 'lucide-react';
 
 const DashboardContent = () => {
   // DADOS DINÂMICOS DE NOMES
-  const [barberOneName, setBarberOneName] = useState('Miguel');
-  const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
+  const [barberOneName, setBarberOneName] = useState('Fabrício');
+  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
 
   const [dashboardData, setDashboardData] = useState({
     atendimentosHoje: 0, receitaDia: 0, servicosRealizados: 0, pendentesFuturos: 0, agendamentos: [], agoraHora: "00:00"
@@ -26,8 +26,8 @@ const DashboardContent = () => {
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       ]);
-      if (res1.ok) setBarberOneName((await res1.json()).valor);
-      if (res2.ok) setBarberTwoName((await res2.json()).valor);
+      if (res1.ok) setBarberOneName((await res1.json()).valor || 'Fabrício');
+      if (res2.ok) setBarberTwoName((await res2.json()).valor || 'Gabriel');
     } catch (err) { console.error(err); }
   };
 
@@ -67,7 +67,7 @@ const DashboardContent = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pt-8 sm:pt-4">
       <div className="flex items-center space-x-4 mb-6">
-        <img src="/logobranca.png" alt="Miguel Alves Barbearia" className="h-12 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+        <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-12 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
         <div>
           <h1 className="text-3xl font-bold text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Dashboard</h1>
           <p className="text-neutral-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gestão em tempo real - {new Date().toLocaleDateString('pt-BR')}</p>

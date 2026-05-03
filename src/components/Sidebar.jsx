@@ -32,7 +32,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
     { id: 'relatorios', label: 'Relatórios', icon: FileText },
     ...(!isJhonatas ? [
       { id: 'servicos', label: 'Serviços', icon: Scissors },
-      { id: 'planos', label: 'Planos', icon: UserCheck }
+      // { id: 'planos', label: 'Planos', icon: UserCheck } // <-- BOTÃO OCULTADO (Comentado)
     ] : []),
   ];
 

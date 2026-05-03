@@ -53,16 +53,16 @@ const Login = () => {
       {/* PELÍCULA COM 90% DE TRANSPARÊNCIA E LEVE BLUR */}
       <div className="absolute inset-0 bg-neutral-950/10 backdrop-blur-[2px] z-10" />
 
-      {/* CABEÇALHO - MIGUEL ALVES */}
+      {/* CABEÇALHO - BRANDING ATUALIZADO */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-[#DEAE60]/20 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
           {/* Logo Branca puxando direto da pasta public */}
-          <img src="/logobranca.png" alt="Barbearia Miguel Alves" className="h-10 sm:h-12 w-auto" />
+          <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col">
-            <h1 className="text-xl sm:text-2xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
-              MIGUEL ALVES
+            <h1 className="text-lg sm:text-xl font-bold text-neutral-50 tracking-tighter leading-none uppercase">
+              BARBEARIA DO MINEIRO
             </h1>
-            <span className="text-[10px] sm:text-xs text-[#DEAE60] font-bold uppercase tracking-widest">
+            <span className="text-[10px] sm:text-xs text-[#DEAE60] font-semibold uppercase tracking-widest mt-0.5">
               Painel de Controle
             </span>
           </div>
@@ -76,12 +76,12 @@ const Login = () => {
             <UserCircle className="w-16 h-16 text-[#DEAE60] mx-auto mb-2" />
             
             {/* TÍTULO ESTILIZADO CONFORME CABEÇALHO */}
-            <div className="flex flex-col items-center">
-              <CardTitle className="text-2xl sm:text-3xl font-black text-neutral-50 tracking-tighter leading-none uppercase">
-                MIGUEL ALVES
+            <div className="flex flex-col items-center text-center">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-neutral-50 tracking-tighter leading-none uppercase">
+                BARBEARIA DO MINEIRO
               </CardTitle>
-              <span className="text-[10px] sm:text-xs text-[#DEAE60] font-bold uppercase tracking-widest mt-1">
-                BARBERSHOP
+              <span className="text-[9px] sm:text-[10px] text-[#DEAE60] font-semibold uppercase tracking-widest mt-1.5">
+                ESTILO DE PAI PARA FILHO
               </span>
             </div>
 
@@ -108,7 +108,6 @@ const Login = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    // Ajuste da espessura aqui (ring-1)
                     className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
                   />
                 </div>
@@ -125,7 +124,6 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    // Ajuste da espessura aqui (ring-1)
                     className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
                   />
                 </div>
@@ -133,7 +131,7 @@ const Login = () => {
               
               <Button 
                 type="submit" 
-                className="w-full bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-black h-12 text-lg mt-2 shadow-xl shadow-black/30 uppercase tracking-tighter"
+                className="w-full bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold h-12 text-lg mt-2 shadow-xl shadow-black/30 uppercase tracking-tighter"
                 disabled={loading}
               >
                 {loading ? (

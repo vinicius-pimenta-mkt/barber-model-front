@@ -31,15 +31,16 @@ import {
   DollarSign,
   Package 
 } from "lucide-react";
+import { format, subDays } from 'date-fns';
 
 const Relatorios = ({ user }) => {
   const isJhonatas = user?.role === 'jhonatas';
   const [periodo, setPeriodo] = useState("mes");
   const [barber, setBarber] = useState(isJhonatas ? "Jhonatas" : "Geral");
   
-  // --- NOMES DINÂMICOS ---
-  const [barberOneName, setBarberOneName] = useState('Miguel');
-  const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
+  // --- DADOS DINÂMICOS DE NOMES ---
+  const [barberOneName, setBarberOneName] = useState('Fabrício');
+  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
 
   const [servicosMaisVendidos, setServicosMaisVendidos] = useState([]);
   const [receitaTempos, setReceitaTempos] = useState([]);
@@ -58,8 +59,8 @@ const Relatorios = ({ user }) => {
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
         ]);
-        if (res1.ok) setBarberOneName((await res1.json()).valor);
-        if (res2.ok) setBarberTwoName((await res2.json()).valor);
+        if (res1.ok) setBarberOneName((await res1.json()).valor || 'Fabrício');
+        if (res2.ok) setBarberTwoName((await res2.json()).valor || 'Gabriel');
       } catch (err) {
         console.error("Erro ao buscar nomes:", err);
       }
@@ -74,10 +75,16 @@ const Relatorios = ({ user }) => {
       try {
         const token = localStorage.getItem("token");
         let apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/relatorios/resumo`;
-        
-        // AQUI ESTÁ A CORREÇÃO: Agora enviamos a palavra-chave correta (ex: periodo=hoje) 
-        // para que o Backend saiba que precisa quebrar o gráfico por hora.
         let params = `?periodo=${periodo}&barber=${barber}`;
+
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+
+        if (periodo === 'hoje') {
+          params = `?data_inicio=${today}&data_fim=${today}&barber=${barber}`;
+        } else if (periodo === 'ontem') {
+          params = `?data_inicio=${yesterday}&data_fim=${yesterday}&barber=${barber}`;
+        }
 
         const response = await fetch(apiUrl + params, {
           headers: {

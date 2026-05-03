@@ -6,9 +6,9 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isJhonatas = user?.role === 'jhonatas';
   
-  // DADOS DINÂMICOS DE NOMES
-  const [barberOneName, setBarberOneName] = useState('Miguel');
-  const [barberTwoName, setBarberTwoName] = useState('Jhonatas');
+  // DADOS DINÂMICOS DE NOMES COM NOVOS PADRÕES
+  const [barberOneName, setBarberOneName] = useState('Fabrício');
+  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
 
   useEffect(() => {
     const fetchNomes = async () => {
@@ -17,8 +17,8 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
         ]);
-        if (res1.ok) setBarberOneName((await res1.json()).valor);
-        if (res2.ok) setBarberTwoName((await res2.json()).valor);
+        if (res1.ok) setBarberOneName((await res1.json()).valor || 'Fabrício');
+        if (res2.ok) setBarberTwoName((await res2.json()).valor || 'Gabriel');
       } catch (err) { console.error(err); }
     };
     fetchNomes();
@@ -32,7 +32,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
     { id: 'relatorios', label: 'Relatórios', icon: FileText },
     ...(!isJhonatas ? [
       { id: 'servicos', label: 'Serviços', icon: Scissors },
-      // { id: 'planos', label: 'Planos', icon: UserCheck } // <-- BOTÃO OCULTADO (Comentado)
+      // { id: 'planos', label: 'Planos', icon: UserCheck }
     ] : []),
   ];
 
@@ -46,8 +46,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           <img src="/logobranca.png" alt="Logo" className="h-8 w-auto" />
-          {/* FONTES MAIS SUAVES: De font-black para font-bold */}
-          <span className="text-white font-bold text-sm uppercase tracking-tighter">Miguel Alves</span>
+          <span className="text-white font-bold text-[11px] uppercase tracking-tighter">Barbearia do Mineiro</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
           {isMobileMenuOpen ? <X /> : <Menu />}
@@ -60,9 +59,8 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
             <div className="flex items-center space-x-3">
               <img src="/logobranca.png" alt="Logo" className="h-10 w-auto" />
               <div>
-                {/* FONTES MAIS SUAVES: De font-black para font-extrabold */}
-                <h2 className="text-lg font-extrabold text-white leading-none uppercase tracking-tighter">Miguel Alves</h2>
-                <p className="text-[10px] text-[#DEAE60] font-semibold uppercase tracking-widest mt-1">Barbershop</p>
+                <h2 className="text-[14px] font-extrabold text-white leading-tight uppercase tracking-tighter">Barbearia do<br/>Mineiro</h2>
+                <p className="text-[8px] text-[#DEAE60] font-semibold uppercase tracking-widest mt-0.5">Estilo de pai para filho</p>
               </div>
             </div>
           </div>
@@ -86,10 +84,9 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
           <div className="p-4 border-t border-neutral-800">
             <div className="flex items-center space-x-3 mb-4 px-2">
               <div className="w-9 h-9 bg-neutral-950 rounded-full flex items-center justify-center border border-[#DEAE60]/30 shadow-inner">
-                <span className="text-[#DEAE60] font-bold text-xs uppercase">{isJhonatas ? barberTwoName.charAt(0) : 'MA'}</span>
+                <span className="text-[#DEAE60] font-bold text-xs uppercase">{isJhonatas ? barberTwoName.charAt(0) : barberOneName.charAt(0)}</span>
               </div>
               <div className="min-w-0">
-                {/* FONTES MAIS SUAVES: De font-black para font-bold */}
                 <p className="text-sm font-bold text-white truncate uppercase tracking-tighter">
                   {isJhonatas ? barberTwoName : barberOneName}
                 </p>

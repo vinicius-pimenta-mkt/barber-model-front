@@ -13,11 +13,10 @@ const AgendamentoPublico = () => {
   const [sucesso, setSucesso] = useState(false);
 
   // --- DADOS DINÂMICOS DO BACKEND ---
-  const [barberOneName, setBarberOneName] = useState('Carregando...');
-  const [barberTwoName, setBarberTwoName] = useState('Carregando...');
+  const [barberOneName, setBarberOneName] = useState('Fabrício');
+  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
   const [servicosDb, setServicosDb] = useState([]);
 
-  // Nota: formData.barbeiro continua salvando "Miguel" para manter compatibilidade com o Banco de Dados
   const [formData, setFormData] = useState({
     barbeiro: 'Miguel',
     cliente_nome: '',
@@ -143,6 +142,12 @@ const AgendamentoPublico = () => {
         <Card className="max-w-lg w-full shadow-2xl bg-neutral-900/90 border-neutral-800 backdrop-blur-md">
           
           <div className="p-6 text-center border-b border-neutral-800">
+            {/* --- AJUSTE: LOGO ACIMA DO TÍTULO --- */}
+            <img 
+              src="/logobranca.png" 
+              alt="Logo Barbearia do Mineiro" 
+              className="w-16 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
+            />
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight flex items-center justify-center gap-2">
               <CalendarDays className="h-6 w-6 text-[#DEAE60]" /> Agende seu Horário
             </h1>
@@ -152,7 +157,6 @@ const AgendamentoPublico = () => {
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* PASSO 1: PROFISSIONAL */}
               <div className="space-y-3">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 1. Escolha o Profissional
@@ -167,7 +171,6 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              {/* PASSO 2: SERVIÇO */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Scissors className="h-4 w-4 text-[#DEAE60]"/> 2. Serviço e Pagamento
@@ -221,7 +224,6 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              {/* PASSO 3: DATA E HORA */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Clock className="h-4 w-4 text-[#DEAE60]"/> 3. Data e Hora
@@ -245,13 +247,8 @@ const AgendamentoPublico = () => {
                     )}
                   </div>
                 )}
-                
-                {formData.data && !formData.servicoObj && (
-                  <div className="text-xs text-amber-400 bg-amber-950/30 p-3 rounded-lg border border-amber-900/30 text-center font-bold">Selecione um serviço primeiro.</div>
-                )}
               </div>
 
-              {/* PASSO 4: DADOS PESSOAIS */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 4. Seus Dados

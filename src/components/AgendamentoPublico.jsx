@@ -13,9 +13,11 @@ const AgendamentoPublico = () => {
   const [sucesso, setSucesso] = useState(false);
 
   // --- DADOS DINÂMICOS DO BACKEND ---
+  const [barberOneName, setBarberOneName] = useState('Carregando...');
   const [barberTwoName, setBarberTwoName] = useState('Carregando...');
   const [servicosDb, setServicosDb] = useState([]);
 
+  // Nota: formData.barbeiro continua salvando "Miguel" para manter compatibilidade com o Banco de Dados
   const [formData, setFormData] = useState({
     barbeiro: 'Miguel',
     cliente_nome: '',
@@ -27,17 +29,20 @@ const AgendamentoPublico = () => {
   });
 
   useEffect(() => {
-    // 1. Busca o nome do Barbeiro 2
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`)
+      .then(res => res.json())
+      .then(data => setBarberOneName(data.valor || 'Fabrício'))
+      .catch(err => console.error(err));
+
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       .then(res => res.json())
-      .then(data => setBarberTwoName(data.valor || 'Jhonatas'))
-      .catch(err => console.error("Erro ao buscar nome:", err));
+      .then(data => setBarberTwoName(data.valor || 'Gabriel'))
+      .catch(err => console.error(err));
 
-    // 2. Busca a lista de Serviços
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
       .then(res => res.json())
       .then(data => setServicosDb(data))
-      .catch(err => console.error("Erro ao buscar serviços:", err));
+      .catch(err => console.error(err));
   }, []);
 
   useEffect(() => {
@@ -50,7 +55,7 @@ const AgendamentoPublico = () => {
     setLoadingHorarios(true);
     setFormData(prev => ({ ...prev, hora: '' })); 
     try {
-      const endpoint = formData.barbeiro === barberTwoName ? 'agendamentos-jhonatas' : 'agendamentos';
+      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/disponibilidade?data=${formData.data}&servico=${encodeURIComponent(formData.servicoObj.nome)}`;
       
       const response = await fetch(url);
@@ -69,13 +74,13 @@ const AgendamentoPublico = () => {
     e.preventDefault();
     setSalvando(true);
     try {
-      const endpoint = formData.barbeiro === barberTwoName ? 'agendamentos-jhonatas' : 'agendamentos';
+      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
       
       const payload = {
         cliente_nome: formData.cliente_nome,
         cliente_telefone: formData.cliente_telefone,
         servico: formData.servicoObj.nome,
-        preco: formData.servicoObj.precoEmCentavos, // Envia em centavos para o banco
+        preco: formData.servicoObj.precoEmCentavos, 
         data: formData.data,
         hora: formData.hora,
         forma_pagamento: formData.forma_pagamento,
@@ -128,8 +133,8 @@ const AgendamentoPublico = () => {
         <div className="flex items-center gap-3">
           <img src="/logobranca.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col text-left">
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tighter leading-none uppercase">MIGUEL ALVES</h1>
-            <span className="text-[10px] sm:text-xs text-[#DEAE60] font-bold uppercase tracking-widest">BARBERSHOP</span>
+            <h1 className="text-[14px] sm:text-lg font-black text-white tracking-tighter leading-none uppercase">BARBEARIA DO MINEIRO</h1>
+            <span className="text-[8px] sm:text-[9px] text-[#DEAE60] font-bold uppercase tracking-widest mt-0.5">ESTILO DE PAI PARA FILHO</span>
           </div>
         </div>
       </header>
@@ -154,9 +159,9 @@ const AgendamentoPublico = () => {
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
                   <Button type="button" variant="outline" className={formData.barbeiro === 'Miguel' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
-                    Miguel
+                    {barberOneName}
                   </Button>
-                  <Button type="button" variant="outline" className={formData.barbeiro === barberTwoName ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: barberTwoName})}>
+                  <Button type="button" variant="outline" className={formData.barbeiro === 'Jhonatas' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
                     {barberTwoName}
                   </Button>
                 </div>
@@ -173,8 +178,8 @@ const AgendamentoPublico = () => {
                   if(servicoEncontrado) {
                     setFormData({...formData, servicoObj: { 
                       nome: servicoEncontrado.nome, 
-                      precoExibicao: servicoEncontrado.preco / 100, // Transforma 3000 em 30.00 para exibir
-                      precoEmCentavos: servicoEncontrado.preco // Guarda o original para enviar ao backend
+                      precoExibicao: servicoEncontrado.preco / 100,
+                      precoEmCentavos: servicoEncontrado.preco
                     }});
                   }
                 }}>

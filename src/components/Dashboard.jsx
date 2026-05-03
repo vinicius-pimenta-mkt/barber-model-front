@@ -4,7 +4,7 @@ import DashboardContent from './DashboardContent';
 import Agenda from './Agenda';
 import Clientes from './Clientes';
 import Relatorios from './Relatorios';
-import Planos from './Planos';
+// import Planos from './Planos';      // <-- ARQUIVO OCULTADO (Comentado)
 import Produtos from './Produtos';
 import Servicos from './Servicos'; // <-- NOVO IMPORT AQUI
 
@@ -19,8 +19,8 @@ const Dashboard = ({ user, onLogout }) => {
         return <Clientes user={user} />;
       case 'relatorios':
         return <Relatorios user={user} />;
-      case 'planos':
-        return <Planos user={user} />;
+      // case 'planos':                  // <-- ROTA OCULTADA (Comentado)
+      //   return <Planos user={user} />;// <-- ROTA OCULTADA (Comentado)
       case 'produtos':               
         return <Produtos user={user} />;
       case 'servicos': // <-- NOVA ROTA AQUI

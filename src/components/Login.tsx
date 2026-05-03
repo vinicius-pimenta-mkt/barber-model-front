@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Lock, UserCircle } from 'lucide-react';
+import { Lock } from 'lucide-react'; // Removido o UserCircle daqui
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -43,20 +43,19 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-neutral-950">
       
-      {/* IMAGEM DE FUNDO (Puxando da pasta public) */}
+      {/* IMAGEM DE FUNDO */}
       <img 
         src="/fundologin.png" 
         alt="Fundo" 
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
-      {/* PELÍCULA COM 90% DE TRANSPARÊNCIA E LEVE BLUR */}
+      {/* PELÍCULA COM TRANSPARÊNCIA E LEVE BLUR */}
       <div className="absolute inset-0 bg-neutral-950/10 backdrop-blur-[2px] z-10" />
 
-      {/* CABEÇALHO - BRANDING ATUALIZADO */}
+      {/* CABEÇALHO - BRANDING */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-[#DEAE60]/20 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
-          {/* Logo Branca puxando direto da pasta public */}
           <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-10 sm:h-12 w-auto" />
           <div className="flex flex-col">
             <h1 className="text-lg sm:text-xl font-bold text-neutral-50 tracking-tighter leading-none uppercase">
@@ -71,9 +70,19 @@ const Login = () => {
 
       {/* CONTEÚDO CENTRALIZADO */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 z-20 relative">
-        <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 shadow-2xl shadow-black/50 backdrop-blur-md">
-          <CardHeader className="space-y-1 pb-4 text-center">
-            <UserCircle className="w-16 h-16 text-[#DEAE60] mx-auto mb-2" />
+        <Card className="w-full max-w-md bg-neutral-900/90 border-neutral-800 shadow-2xl shadow-black/50 backdrop-blur-md overflow-hidden">
+          
+          {/* CAMADA DE FUNDO DETALHE SUPERIOR */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-[#DEAE60]" />
+
+          <CardHeader className="space-y-1 pt-8 pb-4 text-center relative">
+            
+            {/* --- AJUSTE SOLICITADO: ÍCONE DE PERFIL SUBSTITUÍDO PELA LOGO --- */}
+            <img 
+              src="/logobranca.png" 
+              alt="Logo Barbearia do Mineiro" 
+              className="w-20 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
+            />
             
             {/* TÍTULO ESTILIZADO CONFORME CABEÇALHO */}
             <div className="flex flex-col items-center text-center">
@@ -100,7 +109,9 @@ const Login = () => {
               <div className="space-y-2">
                 <Label htmlFor="username">Usuário</Label>
                 <div className="relative">
-                  <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 bg-neutral-800 rounded-md">
+                    <UserCircleIcon className="h-4 w-4 text-neutral-500" />
+                  </div>
                   <Input
                     id="username"
                     type="text"
@@ -108,7 +119,7 @@ const Login = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
+                    className="pl-12 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
                   />
                 </div>
               </div>
@@ -116,7 +127,9 @@ const Login = () => {
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 bg-neutral-800 rounded-md">
+                    <Lock className="h-4 w-4 text-neutral-500" />
+                  </div>
                   <Input
                     id="password"
                     type="password"
@@ -124,7 +137,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
+                    className="pl-12 bg-neutral-950 border-neutral-800 text-neutral-100 h-12 focus-visible:ring-1 focus-visible:ring-[#DEAE60] focus-visible:border-[#DEAE60]"
                   />
                 </div>
               </div>
@@ -160,5 +173,13 @@ const Label = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNo
     {children}
   </label>
 );
+
+// Ícone simples para os inputs
+const UserCircleIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
 
 export default Login;

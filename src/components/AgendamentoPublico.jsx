@@ -155,7 +155,7 @@ const AgendamentoPublico = () => {
 
       <header className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-[#DEAE60]/20 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
-          <img src="/logobranca.png" alt="Logo" className="h-12 sm:h-14 w-auto" />
+          <img src="/logobranca.png" alt="Logo" className="h-16 sm:h-14 w-auto" />
           <div className="flex flex-col text-left">
             <h1 className="text-[14px] sm:text-lg font-black text-white tracking-tighter leading-none uppercase">BARBEARIA DO MINEIRO</h1>
             <span className="text-[8px] sm:text-[9px] text-[#DEAE60] font-bold uppercase tracking-widest mt-0.5">ESTILO DE PAI PARA FILHO</span>
@@ -170,7 +170,7 @@ const AgendamentoPublico = () => {
             <img 
               src="/logobranca.png" 
               alt="Logo Barbearia do Mineiro" 
-              className="w-28 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
+              className="w-32 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
             />
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight flex items-center justify-center gap-2">
               <CalendarDays className="h-6 w-6 text-[#DEAE60]" /> Agende seu Horário

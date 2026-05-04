@@ -170,7 +170,7 @@ const AgendamentoPublico = () => {
             <img 
               src="/logobranca.png" 
               alt="Logo Barbearia do Mineiro" 
-              className="w-26 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
+              className="w-28 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
             />
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight flex items-center justify-center gap-2">
               <CalendarDays className="h-6 w-6 text-[#DEAE60]" /> Agende seu Horário

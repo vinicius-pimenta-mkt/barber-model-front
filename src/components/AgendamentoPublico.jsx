@@ -14,12 +14,12 @@ const AgendamentoPublico = () => {
 
   // --- DADOS DINÂMICOS DO BACKEND ---
   const [barberOneName, setBarberOneName] = useState('Fabrício');
-  const [barberTwoName, setBarberTwoName] = useState('Lucas');
-  const [barberThreeName, setBarberThreeName] = useState('Gabriel');
+  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
+  const [barberThreeName, setBarberThreeName] = useState('Lucas');
   const [servicosDb, setServicosDb] = useState([]);
 
   const [formData, setFormData] = useState({
-    barbeiro: 'Miguel', 
+    barbeiro: 'Miguel', // Variável interna para a API 1
     cliente_nome: '',
     cliente_telefone: '',
     servicoObj: null, 
@@ -29,28 +29,33 @@ const AgendamentoPublico = () => {
   });
 
   useEffect(() => {
+    // Carrega Nome 1 (Fabrício)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`)
       .then(res => res.json())
       .then(data => setBarberOneName(data.valor || 'Fabrício'))
       .catch(err => console.error(err));
 
+    // Carrega Nome 2 (Gabriel)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       .then(res => res.json())
       .then(data => {
-        // TRAVA DE SEGURANÇA: Força o nome Lucas se o banco retornar Jhonatas
-        if (data.valor === 'Jhonatas') {
-          setBarberTwoName('Lucas');
+        // TRAVA DE SEGURANÇA: Força o nome Gabriel se o banco retornar Jhonatas
+        const nomeSalvo = data.valor;
+        if (nomeSalvo === 'Jhonatas' || !nomeSalvo) {
+          setBarberTwoName('Gabriel');
         } else {
-          setBarberTwoName(data.valor || 'Lucas');
+          setBarberTwoName(nomeSalvo);
         }
       })
       .catch(err => console.error(err));
 
+    // Carrega Nome 3 (Lucas)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
       .then(res => res.json())
-      .then(data => setBarberThreeName(data.valor || 'Gabriel'))
+      .then(data => setBarberThreeName(data.valor || 'Lucas'))
       .catch(err => console.error(err));
 
+    // Carrega Serviços
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
       .then(res => res.json())
       .then(data => setServicosDb(data))
@@ -67,6 +72,7 @@ const AgendamentoPublico = () => {
     setLoadingHorarios(true);
     setFormData(prev => ({ ...prev, hora: '' })); 
     try {
+      // Define a rota de acordo com o barbeiro escolhido
       let endpoint = 'agendamentos';
       if (formData.barbeiro === 'Jhonatas') endpoint = 'agendamentos-jhonatas';
       if (formData.barbeiro === 'Lucas') endpoint = 'agendamentos-lucas';
@@ -89,6 +95,7 @@ const AgendamentoPublico = () => {
     e.preventDefault();
     setSalvando(true);
     try {
+      // Define a rota de acordo com o barbeiro escolhido
       let endpoint = 'agendamentos';
       if (formData.barbeiro === 'Jhonatas') endpoint = 'agendamentos-jhonatas';
       if (formData.barbeiro === 'Lucas') endpoint = 'agendamentos-lucas';

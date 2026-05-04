@@ -15,10 +15,11 @@ const AgendamentoPublico = () => {
   // --- DADOS DINÂMICOS DO BACKEND ---
   const [barberOneName, setBarberOneName] = useState('Fabrício');
   const [barberTwoName, setBarberTwoName] = useState('Gabriel');
+  const [barberThreeName, setBarberThreeName] = useState('Lucas');
   const [servicosDb, setServicosDb] = useState([]);
 
   const [formData, setFormData] = useState({
-    barbeiro: 'Miguel',
+    barbeiro: 'Miguel', // Default interno para o Fabrício
     cliente_nome: '',
     cliente_telefone: '',
     servicoObj: null, 
@@ -38,6 +39,11 @@ const AgendamentoPublico = () => {
       .then(data => setBarberTwoName(data.valor || 'Gabriel'))
       .catch(err => console.error(err));
 
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
+      .then(res => res.json())
+      .then(data => setBarberThreeName(data.valor || 'Lucas'))
+      .catch(err => console.error(err));
+
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
       .then(res => res.json())
       .then(data => setServicosDb(data))
@@ -54,7 +60,10 @@ const AgendamentoPublico = () => {
     setLoadingHorarios(true);
     setFormData(prev => ({ ...prev, hora: '' })); 
     try {
-      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
+      let endpoint = 'agendamentos';
+      if (formData.barbeiro === 'Jhonatas') endpoint = 'agendamentos-jhonatas';
+      if (formData.barbeiro === 'Lucas') endpoint = 'agendamentos-lucas';
+
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/disponibilidade?data=${formData.data}&servico=${encodeURIComponent(formData.servicoObj.nome)}`;
       
       const response = await fetch(url);
@@ -73,7 +82,9 @@ const AgendamentoPublico = () => {
     e.preventDefault();
     setSalvando(true);
     try {
-      const endpoint = formData.barbeiro === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos';
+      let endpoint = 'agendamentos';
+      if (formData.barbeiro === 'Jhonatas') endpoint = 'agendamentos-jhonatas';
+      if (formData.barbeiro === 'Lucas') endpoint = 'agendamentos-lucas';
       
       const payload = {
         cliente_nome: formData.cliente_nome,
@@ -142,7 +153,7 @@ const AgendamentoPublico = () => {
         <Card className="max-w-lg w-full shadow-2xl bg-neutral-900/90 border-neutral-800 backdrop-blur-md">
           
           <div className="p-6 text-center border-b border-neutral-800">
-            {/* --- AJUSTE: LOGO ACIMA DO TÍTULO --- */}
+            {/* --- LOGO INSERIDA AQUI (ACIMA DO TÍTULO) --- */}
             <img 
               src="/logobranca.png" 
               alt="Logo Barbearia do Mineiro" 
@@ -157,20 +168,25 @@ const AgendamentoPublico = () => {
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               
+              {/* PASSO 1: PROFISSIONAL (AGORA COM OS 3 BOTÕES) */}
               <div className="space-y-3">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 1. Escolha o Profissional
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Button type="button" variant="outline" className={formData.barbeiro === 'Miguel' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Miguel'})}>
                     {barberOneName}
                   </Button>
                   <Button type="button" variant="outline" className={formData.barbeiro === 'Jhonatas' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Jhonatas'})}>
                     {barberTwoName}
                   </Button>
+                  <Button type="button" variant="outline" className={formData.barbeiro === 'Lucas' ? 'bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold border-0' : 'bg-neutral-950 border-neutral-800 text-neutral-400 font-bold'} onClick={() => setFormData({...formData, barbeiro: 'Lucas'})}>
+                    {barberThreeName}
+                  </Button>
                 </div>
               </div>
 
+              {/* PASSO 2: SERVIÇO */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Scissors className="h-4 w-4 text-[#DEAE60]"/> 2. Serviço e Pagamento
@@ -224,6 +240,7 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
+              {/* PASSO 3: DATA E HORA */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Clock className="h-4 w-4 text-[#DEAE60]"/> 3. Data e Hora
@@ -247,8 +264,13 @@ const AgendamentoPublico = () => {
                     )}
                   </div>
                 )}
+                
+                {formData.data && !formData.servicoObj && (
+                  <div className="text-xs text-amber-400 bg-amber-950/30 p-3 rounded-lg border border-amber-900/30 text-center font-bold">Selecione um serviço primeiro.</div>
+                )}
               </div>
 
+              {/* PASSO 4: DADOS PESSOAIS */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 4. Seus Dados

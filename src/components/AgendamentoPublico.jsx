@@ -13,9 +13,9 @@ const AgendamentoPublico = () => {
   const [sucesso, setSucesso] = useState(false);
 
   // --- DADOS DINÂMICOS DO BACKEND ---
-  const [barberOneName, setBarberOneName] = useState('Fabrício');
-  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
-  const [barberThreeName, setBarberThreeName] = useState('Lucas');
+  const [barberOneName, setBarberOneName] = useState('Carregando...');
+  const [barberTwoName, setBarberTwoName] = useState('Carregando...');
+  const [barberThreeName, setBarberThreeName] = useState('Carregando...');
   const [servicosDb, setServicosDb] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -39,7 +39,7 @@ const AgendamentoPublico = () => {
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       .then(res => res.json())
       .then(data => {
-        // TRAVA DE SEGURANÇA: Força o nome Gabriel se o banco retornar Jhonatas
+        // TRAVA DE SEGURANÇA: Força o nome Gabriel se o banco retornar Jhonatas ou vazio
         const nomeSalvo = data.valor;
         if (nomeSalvo === 'Jhonatas' || !nomeSalvo) {
           setBarberTwoName('Gabriel');

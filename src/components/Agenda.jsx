@@ -13,15 +13,13 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Agenda = ({ user }) => {
-  // LÓGICA DE PERMISSÕES
   const isJhonatas = user?.role === 'jhonatas';
   const isLucas = user?.role === 'lucas';
   const isAdmin = !isJhonatas && !isLucas;
 
-  // --- DADOS DINÂMICOS DO BACKEND ---
   const [barberOneName, setBarberOneName] = useState('Fabrício');
-  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
-  const [barberThreeName, setBarberThreeName] = useState('Lucas');
+  const [barberTwoName, setBarberTwoName] = useState('Lucas');
+  const [barberThreeName, setBarberThreeName] = useState('Gabriel');
   
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [targetBarber, setTargetBarber] = useState('barberTwoName'); 
@@ -70,8 +68,12 @@ const Agenda = ({ user }) => {
       ]);
 
       if (resNome1.ok) setBarberOneName((await resNome1.json()).valor || 'Fabrício');
-      if (resNome2.ok) setBarberTwoName((await resNome2.json()).valor || 'Gabriel');
-      if (resNome3.ok) setBarberThreeName((await resNome3.json()).valor || 'Lucas');
+      if (resNome2.ok) {
+        const data2 = await res2.json();
+        // TRAVA: Força o nome Lucas se o banco trouxer o antigo Jhonatas
+        setBarberTwoName(data2.valor === 'Jhonatas' ? 'Lucas' : (data2.valor || 'Lucas'));
+      }
+      if (resNome3.ok) setBarberThreeName((await res3.json()).valor || 'Gabriel');
 
       const resServicos = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`, { headers });
       if (resServicos.ok) setServicosDb(await resServicos.json());
@@ -111,11 +113,6 @@ const Agenda = ({ user }) => {
         body: JSON.stringify({ valor: tempName.trim() })
       });
       if (res.ok) {
-        if (targetBarber === 'barberOneName') setBarberOneName(tempName.trim());
-        if (targetBarber === 'barberTwoName') setBarberTwoName(tempName.trim());
-        if (targetBarber === 'barberThreeName') setBarberThreeName(tempName.trim());
-        
-        setNameDialogOpen(false);
         window.location.reload(); 
       }
     } catch (error) { console.error("Erro ao salvar nome", error); }
@@ -283,7 +280,7 @@ const Agenda = ({ user }) => {
     const filtrados = agendamentos.filter(a => a.barber === barbeiroKey && (!selectedDate || a.data === format(selectedDate, 'yyyy-MM-dd'))).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
-      <Card className="flex-1 bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden min-w-[300px]">
+      <Card className="w-full bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden min-w-[300px]">
         <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
           <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
             <User className={`h-5 w-5 ${barbeiroKey === 'Miguel' ? 'text-[#DEAE60]' : 'text-neutral-400'}`} />
@@ -384,8 +381,8 @@ const Agenda = ({ user }) => {
             <Dialog open={nameDialogOpen} onOpenChange={(open) => {
               setNameDialogOpen(open);
               if (open) {
-                 setTargetBarber('barberThreeName');
-                 setTempName(barberThreeName);
+                 setTargetBarber('barberTwoName');
+                 setTempName(barberTwoName);
               }
             }}>
               <DialogTrigger asChild>
@@ -631,8 +628,7 @@ const Agenda = ({ user }) => {
         </div>
       </div>
 
-      {/* RENDERIZAÇÃO INTELIGENTE DAS TABELAS COM BASE NO CARGO */}
-      <div className="flex flex-col xl:flex-row gap-6 overflow-x-auto pb-4">
+      <div className="flex flex-col gap-6 pb-4">
         {isAdmin && renderTable('Miguel')}
         {(isAdmin || isJhonatas) && renderTable('Jhonatas')}
         {(isAdmin || isLucas) && renderTable('Lucas')}

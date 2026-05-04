@@ -104,7 +104,7 @@ const DashboardContent = ({ user }) => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pt-8 sm:pt-4">
       <div className="flex items-center space-x-4 mb-6">
-        <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-18 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+        <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-21 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
         <div>
           <h1 className="text-3xl font-bold text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Dashboard</h1>
           <p className="text-neutral-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">

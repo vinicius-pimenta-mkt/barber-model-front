@@ -22,8 +22,8 @@ const Relatorios = ({ user }) => {
   
   // DADOS DINÂMICOS DE NOMES
   const [barberOneName, setBarberOneName] = useState('Fabrício');
-  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
-  const [barberThreeName, setBarberThreeName] = useState('Lucas');
+  const [barberTwoName, setBarberTwoName] = useState('Lucas');
+  const [barberThreeName, setBarberThreeName] = useState('Gabriel');
 
   const [servicosMaisVendidos, setServicosMaisVendidos] = useState([]);
   const [receitaTempos, setReceitaTempos] = useState([]);
@@ -43,8 +43,11 @@ const Relatorios = ({ user }) => {
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
         ]);
         if (res1.ok) setBarberOneName((await res1.json()).valor || 'Fabrício');
-        if (res2.ok) setBarberTwoName((await res2.json()).valor || 'Gabriel');
-        if (res3.ok) setBarberThreeName((await res3.json()).valor || 'Lucas');
+        if (res2.ok) {
+          const data2 = await res2.json();
+          setBarberTwoName(data2.valor === 'Jhonatas' ? 'Lucas' : (data2.valor || 'Lucas'));
+        }
+        if (res3.ok) setBarberThreeName((await res3.json()).valor || 'Gabriel');
       } catch (err) { console.error("Erro ao buscar nomes:", err); }
     };
     fetchNomes();

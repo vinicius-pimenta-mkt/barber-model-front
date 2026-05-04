@@ -13,14 +13,17 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Agenda = ({ user }) => {
-  const isJhonatas = user?.role === 'jhonatas';
-  const isLucas = user?.role === 'lucas';
-  const isAdmin = !isJhonatas && !isLucas;
+  // LÓGICA DE PERMISSÕES
+  const isJhonatas = user?.role === 'jhonatas'; // Gabriel
+  const isLucas = user?.role === 'lucas';       // Lucas
+  const isAdmin = !isJhonatas && !isLucas;      // Fabrício
 
-  const [barberOneName, setBarberOneName] = useState('Fabrício');
-  const [barberTwoName, setBarberTwoName] = useState('Lucas');
-  const [barberThreeName, setBarberThreeName] = useState('Gabriel');
+  // --- DADOS DINÂMICOS DO BACKEND ---
+  const [barberOneName, setBarberOneName] = useState('Carregando...');
+  const [barberTwoName, setBarberTwoName] = useState('Carregando...');
+  const [barberThreeName, setBarberThreeName] = useState('Carregando...');
   
+  // Controle do Modal de Edição de Nome
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [targetBarber, setTargetBarber] = useState('barberTwoName'); 
   const [tempName, setTempName] = useState('');
@@ -38,6 +41,7 @@ const Agenda = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
   
+  // Internamente o "barber" continua sendo Miguel, Jhonatas ou Lucas para conversar com o banco
   const [formData, setFormData] = useState({
     cliente_nome: '', cliente_telefone: '', servico: '', data: format(new Date(), 'yyyy-MM-dd'),
     hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', 
@@ -61,28 +65,44 @@ const Agenda = ({ user }) => {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const [resNome1, resNome2, resNome3] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
-      ]);
-
-      if (resNome1.ok) setBarberOneName((await resNome1.json()).valor || 'Fabrício');
-      if (resNome2.ok) {
-        const data2 = await res2.json();
-        // TRAVA: Força o nome Lucas se o banco trouxer o antigo Jhonatas
-        setBarberTwoName(data2.valor === 'Jhonatas' ? 'Lucas' : (data2.valor || 'Lucas'));
+      // Busca Nome Barbeiro 1 (Fabrício)
+      const resNome1 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`);
+      if (resNome1.ok) {
+        const dataNome1 = await resNome1.json();
+        setBarberOneName(dataNome1.valor || 'Fabrício');
+        localStorage.setItem('barberOneName', dataNome1.valor || 'Fabrício');
       }
-      if (resNome3.ok) setBarberThreeName((await res3.json()).valor || 'Gabriel');
 
+      // Busca Nome Barbeiro 2 (Gabriel / antigo Jhonatas)
+      const resNome2 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`);
+      if (resNome2.ok) {
+        const dataNome2 = await resNome2.json();
+        const nomeSalvo = dataNome2.valor;
+        // Trava para forçar o nome Gabriel
+        const nomeFinal2 = (nomeSalvo === 'Jhonatas' || !nomeSalvo) ? 'Gabriel' : nomeSalvo;
+        setBarberTwoName(nomeFinal2);
+        setTempName(nomeFinal2);
+        localStorage.setItem('barberTwoName', nomeFinal2);
+      }
+
+      // Busca Nome Barbeiro 3 (Lucas)
+      const resNome3 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`);
+      if (resNome3.ok) {
+        const dataNome3 = await resNome3.json();
+        const nomeFinal3 = dataNome3.valor || 'Lucas';
+        setBarberThreeName(nomeFinal3);
+        localStorage.setItem('barberThreeName', nomeFinal3);
+      }
+
+      // Busca Serviços e Clientes
       const resServicos = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`, { headers });
       if (resServicos.ok) setServicosDb(await resServicos.json());
 
       const resClientes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/clientes`, { headers });
       if (resClientes.ok) setClientes(await resClientes.json());
 
+      // Busca Agendamentos com base na Permissão
       const requests = [];
-      
       if (isAdmin) {
         requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Miguel' }))));
         requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Jhonatas' }))));
@@ -92,7 +112,7 @@ const Agenda = ({ user }) => {
       } else if (isLucas) {
         requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-lucas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Lucas' }))));
       }
-
+      
       const results = await Promise.all(requests);
       setAgendamentos(results.flat());
 
@@ -113,6 +133,12 @@ const Agenda = ({ user }) => {
         body: JSON.stringify({ valor: tempName.trim() })
       });
       if (res.ok) {
+        if (targetBarber === 'barberOneName') setBarberOneName(tempName.trim());
+        if (targetBarber === 'barberTwoName') setBarberTwoName(tempName.trim());
+        if (targetBarber === 'barberThreeName') setBarberThreeName(tempName.trim());
+        
+        localStorage.setItem(targetBarber, tempName.trim());
+        setNameDialogOpen(false);
         window.location.reload(); 
       }
     } catch (error) { console.error("Erro ao salvar nome", error); }
@@ -188,7 +214,6 @@ const Agenda = ({ user }) => {
       const slots = [];
       const dIni = new Date(blockData.data_inicio + 'T12:00:00');
       const dFim = new Date(blockData.data_fim + 'T12:00:00');
-      
       for (let d = new Date(dIni); d <= dFim; d.setDate(d.getDate() + 1)) {
         const [hIni, mIni] = blockData.hora_inicio.split(':').map(Number);
         const [hFim, mFim] = blockData.hora_fim.split(':').map(Number);
@@ -280,7 +305,7 @@ const Agenda = ({ user }) => {
     const filtrados = agendamentos.filter(a => a.barber === barbeiroKey && (!selectedDate || a.data === format(selectedDate, 'yyyy-MM-dd'))).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
-      <Card className="w-full bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden min-w-[300px]">
+      <Card className="w-full bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
         <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
           <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
             <User className={`h-5 w-5 ${barbeiroKey === 'Miguel' ? 'text-[#DEAE60]' : 'text-neutral-400'}`} />
@@ -492,24 +517,50 @@ const Agenda = ({ user }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data de Início</Label>
-                      <Input type="date" required value={blockData.data_inicio} onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        type="date" 
+                        required 
+                        value={blockData.data_inicio} 
+                        onChange={(e) => setBlockData({...blockData, data_inicio: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data Final</Label>
-                      <Input type="date" required value={blockData.data_fim} onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        type="date" 
+                        required 
+                        value={blockData.data_fim} 
+                        onChange={(e) => setBlockData({...blockData, data_fim: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora Inicial</Label>
-                      <Input type="time" required value={blockData.hora_inicio} onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        type="time" 
+                        required 
+                        value={blockData.hora_inicio} 
+                        onChange={(e) => setBlockData({...blockData, hora_inicio: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora Final</Label>
-                      <Input type="time" required value={blockData.hora_fim} onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        type="time" 
+                        required 
+                        value={blockData.hora_fim} 
+                        onChange={(e) => setBlockData({...blockData, hora_fim: e.target.value})} 
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2 col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Gerar bloqueios a cada:</Label>
                       <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="15">15 Minutos</SelectItem>
                           <SelectItem value="30">30 Minutos</SelectItem>
@@ -529,7 +580,8 @@ const Agenda = ({ user }) => {
             <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="flex-1 sm:flex-none bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold shadow-lg">
-                  <Plus className="h-4 w-4 sm:mr-2" /> <span className="text-xs sm:text-sm">Novo</span>
+                  <Plus className="h-4 w-4 sm:mr-2" /> 
+                  <span className="text-xs sm:text-sm">Novo</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
@@ -542,7 +594,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2 col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Barbeiro</Label>
                       <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Miguel">{barberOneName}</SelectItem>
                           <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
@@ -554,12 +608,27 @@ const Agenda = ({ user }) => {
                     
                     <div className="space-y-2 col-span-2 relative">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Nome do Cliente</Label>
-                      <Input required value={formData.cliente_nome} onChange={handleNameChange} onFocus={() => { if(formData.cliente_nome) setShowSuggestions(true) }} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} placeholder="Nome completo ou digite para buscar..." className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        required 
+                        value={formData.cliente_nome} 
+                        onChange={handleNameChange}
+                        onFocus={() => { if(formData.cliente_nome) setShowSuggestions(true) }}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        placeholder="Nome completo ou digite para buscar..."
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                       
                       {showSuggestions && filteredClientes.length > 0 && (
                         <ul className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto mt-1">
                           {filteredClientes.map((c, idx) => (
-                            <li key={idx} className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b border-gray-100 last:border-0" onMouseDown={(e) => { e.preventDefault(); handleSelectClient(c); }}>
+                            <li
+                              key={idx}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors border-b border-gray-100 last:border-0"
+                              onMouseDown={(e) => {
+                                e.preventDefault(); 
+                                handleSelectClient(c);
+                              }}
+                            >
                               <div className="font-bold text-gray-900">{c.nome}</div>
                               {c.telefone && <div className="text-xs text-gray-500">{c.telefone}</div>}
                             </li>
@@ -570,12 +639,19 @@ const Agenda = ({ user }) => {
 
                     <div className="space-y-2 col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone do Cliente</Label>
-                      <Input value={formData.cliente_telefone} onChange={(e) => setFormData({...formData, cliente_telefone: e.target.value})} placeholder="(00) 00000-0000" className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        value={formData.cliente_telefone} 
+                        onChange={(e) => setFormData({...formData, cliente_telefone: e.target.value})}
+                        placeholder="(00) 00000-0000"
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2 col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Serviço</Label>
                       <Select value={formData.servico} onValueChange={handleServicoChange}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
+                          <SelectValue placeholder="Selecione o serviço" />
+                        </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           {servicosDb.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
                         </SelectContent>
@@ -583,20 +659,39 @@ const Agenda = ({ user }) => {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data</Label>
-                      <Input type="date" required value={formData.data} onChange={(e) => setFormData({...formData, data: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        type="date" 
+                        required 
+                        value={formData.data} 
+                        onChange={(e) => setFormData({...formData, data: e.target.value})}
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Hora</Label>
-                      <Input type="time" required value={formData.hora} onChange={(e) => setFormData({...formData, hora: e.target.value})} className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        type="time" 
+                        required 
+                        value={formData.hora} 
+                        onChange={(e) => setFormData({...formData, hora: e.target.value})}
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Preço (R$)</Label>
-                      <Input value={formData.preco} onChange={(e) => setFormData({...formData, preco: e.target.value})} placeholder="0,00" className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"/>
+                      <Input 
+                        value={formData.preco} 
+                        onChange={(e) => setFormData({...formData, preco: e.target.value})}
+                        placeholder="0,00"
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Forma de Pagamento</Label>
                       <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({...formData, forma_pagamento: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           {formasPagamento.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                         </SelectContent>
@@ -605,7 +700,9 @@ const Agenda = ({ user }) => {
                     <div className="space-y-2 col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Status</Label>
                       <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Pendente">Pendente</SelectItem>
                           <SelectItem value="Confirmado">Confirmado</SelectItem>
@@ -628,6 +725,7 @@ const Agenda = ({ user }) => {
         </div>
       </div>
 
+      {/* RENDERIZAÇÃO INTELIGENTE DAS TABELAS EMPILHADAS (100% DE LARGURA) */}
       <div className="flex flex-col gap-6 pb-4">
         {isAdmin && renderTable('Miguel')}
         {(isAdmin || isJhonatas) && renderTable('Jhonatas')}

@@ -56,7 +56,7 @@ const Login = () => {
       {/* CABEÇALHO - BRANDING */}
       <div className="w-full bg-neutral-950/80 backdrop-blur-md py-4 px-6 border-b border-[#DEAE60]/20 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-3">
-          <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-17 sm:h-12 w-auto" />
+          <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-19 sm:h-12 w-auto" />
           <div className="flex flex-col">
             <h1 className="text-lg sm:text-xl font-bold text-neutral-50 tracking-tighter leading-none uppercase">
               BARBEARIA DO MINEIRO
@@ -81,7 +81,7 @@ const Login = () => {
             <img 
               src="/logobranca.png" 
               alt="Logo Barbearia do Mineiro" 
-              className="w-30 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
+              className="w-32 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
             />
             
             {/* TÍTULO ESTILIZADO CONFORME CABEÇALHO */}

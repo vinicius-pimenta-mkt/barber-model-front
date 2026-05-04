@@ -69,7 +69,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
     <>
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
-          <img src="/logobranca.png" alt="Logo" className="h-8 w-auto" />
+          <img src="/logobranca.png" alt="Logo" className="h-12 w-auto" />
           <span className="text-white font-bold text-[11px] uppercase tracking-tighter">Barbearia do Mineiro</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
@@ -81,7 +81,7 @@ const Sidebar = ({ activeSection, onSectionChange, onLogout, user }) => {
         <div className="flex flex-col h-full">
           <div className="p-6">
             <div className="flex items-center space-x-3">
-              <img src="/logobranca.png" alt="Logo" className="h-10 w-auto" />
+              <img src="/logobranca.png" alt="Logo" className="h-14 w-auto" />
               <div>
                 <h2 className="text-[14px] font-extrabold text-white leading-tight uppercase tracking-tighter">Barbearia do<br/>Mineiro</h2>
                 <p className="text-[8px] text-[#DEAE60] font-semibold uppercase tracking-widest mt-0.5">Estilo de pai para filho</p>

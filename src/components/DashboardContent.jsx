@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Users, DollarSign, Clock, CheckCircle, User } from 'lucide-react';
 
 const DashboardContent = () => {
-  // DADOS DINÂMICOS DE NOMES (AGORA COM OS 3)
   const [barberOneName, setBarberOneName] = useState('Fabrício');
   const [barberTwoName, setBarberTwoName] = useState('Gabriel');
   const [barberThreeName, setBarberThreeName] = useState('Lucas');
@@ -29,7 +28,10 @@ const DashboardContent = () => {
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
       ]);
       if (res1.ok) setBarberOneName((await res1.json()).valor || 'Fabrício');
-      if (res2.ok) setBarberTwoName((await res2.json()).valor || 'Gabriel');
+      if (res2.ok) {
+        const data2 = await res2.json();
+        setBarberTwoName(data2.valor === 'Jhonatas' ? 'Gabriel' : (data2.valor || 'Gabriel'));
+      }
       if (res3.ok) setBarberThreeName((await res3.json()).valor || 'Lucas');
     } catch (err) { console.error(err); }
   };
@@ -56,7 +58,6 @@ const DashboardContent = () => {
 
   const hojeStr = new Date().toISOString().split('T')[0];
   
-  // Separando os agendamentos pelas 3 agendas
   const agendamentosMiguel = dashboardData.agendamentos.filter(a => a.barber === 'Miguel' && a.status !== 'Bloqueado');
   const agendamentosJhonatas = dashboardData.agendamentos.filter(a => a.barber === 'Jhonatas' && a.status !== 'Bloqueado');
   const agendamentosLucas = dashboardData.agendamentos.filter(a => a.barber === 'Lucas' && a.status !== 'Bloqueado');
@@ -95,8 +96,8 @@ const DashboardContent = () => {
         ))}
       </div>
 
-      {/* GRID ATUALIZADO PARA 3 COLUNAS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* RENDERIZAÇÃO EMPILHADA (100% LARGURA EM TELA GRANDE) */}
+      <div className="flex flex-col gap-6">
         
         {/* CARD DO FABRÍCIO */}
         <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
@@ -113,7 +114,7 @@ const DashboardContent = () => {
                     <div className="w-10 h-10 bg-neutral-950 text-[#DEAE60] rounded-full flex items-center justify-center font-bold border border-[#DEAE60]/30 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
                     <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end">
                     <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
                     <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
                   </div>
@@ -138,7 +139,7 @@ const DashboardContent = () => {
                     <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
                     <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end">
                     <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
                     <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
                   </div>
@@ -163,7 +164,7 @@ const DashboardContent = () => {
                     <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
                     <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end">
                     <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
                     <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
                   </div>

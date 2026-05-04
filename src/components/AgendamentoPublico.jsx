@@ -14,12 +14,12 @@ const AgendamentoPublico = () => {
 
   // --- DADOS DINÂMICOS DO BACKEND ---
   const [barberOneName, setBarberOneName] = useState('Fabrício');
-  const [barberTwoName, setBarberTwoName] = useState('Gabriel');
-  const [barberThreeName, setBarberThreeName] = useState('Lucas');
+  const [barberTwoName, setBarberTwoName] = useState('Lucas');
+  const [barberThreeName, setBarberThreeName] = useState('Gabriel');
   const [servicosDb, setServicosDb] = useState([]);
 
   const [formData, setFormData] = useState({
-    barbeiro: 'Miguel', // Default interno para o Fabrício
+    barbeiro: 'Miguel', 
     cliente_nome: '',
     cliente_telefone: '',
     servicoObj: null, 
@@ -36,12 +36,19 @@ const AgendamentoPublico = () => {
 
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       .then(res => res.json())
-      .then(data => setBarberTwoName(data.valor || 'Gabriel'))
+      .then(data => {
+        // TRAVA DE SEGURANÇA: Força o nome Lucas se o banco retornar Jhonatas
+        if (data.valor === 'Jhonatas') {
+          setBarberTwoName('Lucas');
+        } else {
+          setBarberTwoName(data.valor || 'Lucas');
+        }
+      })
       .catch(err => console.error(err));
 
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
       .then(res => res.json())
-      .then(data => setBarberThreeName(data.valor || 'Lucas'))
+      .then(data => setBarberThreeName(data.valor || 'Gabriel'))
       .catch(err => console.error(err));
 
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
@@ -153,7 +160,6 @@ const AgendamentoPublico = () => {
         <Card className="max-w-lg w-full shadow-2xl bg-neutral-900/90 border-neutral-800 backdrop-blur-md">
           
           <div className="p-6 text-center border-b border-neutral-800">
-            {/* --- LOGO INSERIDA AQUI (ACIMA DO TÍTULO) --- */}
             <img 
               src="/logobranca.png" 
               alt="Logo Barbearia do Mineiro" 
@@ -168,7 +174,6 @@ const AgendamentoPublico = () => {
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* PASSO 1: PROFISSIONAL (AGORA COM OS 3 BOTÕES) */}
               <div className="space-y-3">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 1. Escolha o Profissional
@@ -186,7 +191,6 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              {/* PASSO 2: SERVIÇO */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Scissors className="h-4 w-4 text-[#DEAE60]"/> 2. Serviço e Pagamento
@@ -240,7 +244,6 @@ const AgendamentoPublico = () => {
                 </div>
               </div>
 
-              {/* PASSO 3: DATA E HORA */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <Clock className="h-4 w-4 text-[#DEAE60]"/> 3. Data e Hora
@@ -270,7 +273,6 @@ const AgendamentoPublico = () => {
                 )}
               </div>
 
-              {/* PASSO 4: DADOS PESSOAIS */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 4. Seus Dados

@@ -33,7 +33,6 @@ const Relatorios = ({ user }) => {
   
   const [loading, setLoading] = useState(true);
 
-  // BUSCAR NOMES COM TRAVAS DE SEGURANÇA CORRIGIDAS
   useEffect(() => {
     const fetchNomes = async () => {
       try {
@@ -60,13 +59,12 @@ const Relatorios = ({ user }) => {
           setBarberThreeName(data3.valor || 'Lucas');
         }
       } catch (err) { 
-        console.error("Erro ao procurar nomes:", err); 
+        console.error("Erro ao buscar nomes:", err); 
       }
     };
     fetchNomes();
   }, []);
 
-  // BUSCAR DADOS DOS RELATÓRIOS
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -146,7 +144,7 @@ const Relatorios = ({ user }) => {
       return s.lucas_qty;
     };
     
-    // Cores específicas para cada barbeiro para fácil identificação
+    // Cores específicas para cada barbeiro
     const getBgColor = () => {
       if (barbeiroKey === 'Miguel') return 'bg-[#DEAE60]/10 text-yellow-800';
       if (barbeiroKey === 'Jhonatas') return 'bg-green-50 text-green-800';
@@ -193,7 +191,7 @@ const Relatorios = ({ user }) => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Relatórios Profissionais</h1>
-          <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Análise detalhada de performance e faturação</p>
+          <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Análise detalhada de performance e faturamento</p>
         </div>
         <Button onClick={exportarRelatorio} className="w-full sm:w-auto bg-neutral-900/60 backdrop-blur-md border border-neutral-700 text-white hover:bg-neutral-800 font-bold shadow-lg shadow-black/20 no-print">
           <Download className="h-4 w-4 mr-2 text-[#DEAE60]" /> Exportar PDF
@@ -250,11 +248,11 @@ const Relatorios = ({ user }) => {
         )}
       </div>
 
-      {/* ABAS (SERVIÇOS, RECEITA E CLIENTES) */}
+      {/* ABAS */}
       <Tabs defaultValue="receita" className="space-y-6">
         <TabsList className="bg-white/80 backdrop-blur-md p-1 rounded-xl shadow-lg border border-white/20 no-print">
           <TabsTrigger value="servicos" className="rounded-lg data-[state=active]:bg-[#DEAE60] data-[state=active]:text-neutral-950 font-bold data-[state=active]:shadow-sm">Serviços</TabsTrigger>
-          <TabsTrigger value="receita" className="rounded-lg data-[state=active]:bg-[#DEAE60] data-[state=active]:text-neutral-950 font-bold data-[state=active]:shadow-sm">Faturação</TabsTrigger>
+          <TabsTrigger value="receita" className="rounded-lg data-[state=active]:bg-[#DEAE60] data-[state=active]:text-neutral-950 font-bold data-[state=active]:shadow-sm">Faturamento</TabsTrigger>
           <TabsTrigger value="clientes" className="rounded-lg data-[state=active]:bg-[#DEAE60] data-[state=active]:text-neutral-950 font-bold data-[state=active]:shadow-sm">Clientes</TabsTrigger>
         </TabsList>
 
@@ -307,12 +305,12 @@ const Relatorios = ({ user }) => {
           </Card>
         </TabsContent>
 
-        {/* ABA DE RECEITA / FATURAMENTO */}
+        {/* ABA DE RECEITA */}
         <TabsContent value="receita" className="space-y-6">
           <Card className="bg-white/90 backdrop-blur-md border-white/40 shadow-xl">
             <CardHeader className="border-b border-gray-200/50 bg-white/50">
               <CardTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight text-gray-900">
-                <TrendingUp className="h-5 w-5 text-green-600" /> Evolução de Faturação {(periodo === 'hoje' || periodo === 'ontem') ? '(Por Hora)' : ''}
+                <TrendingUp className="h-5 w-5 text-green-600" /> Evolução de Faturamento {(periodo === 'hoje' || periodo === 'ontem') ? '(Por Hora)' : ''}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -358,7 +356,7 @@ const Relatorios = ({ user }) => {
                 </div>
               ) : (
                 <div className="h-[350px] flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 rounded-xl m-4 border border-dashed border-gray-200">
-                  <p className="font-medium italic">Nenhuma faturação registada no período selecionado.</p>
+                  <p className="font-medium italic">Nenhum faturamento registrado no período selecionado.</p>
                 </div>
               )}
             </CardContent>
@@ -406,7 +404,7 @@ const Relatorios = ({ user }) => {
             <Card className="bg-white/90 backdrop-blur-md border-white/40 shadow-xl">
               <CardHeader className="border-b border-gray-200/50 bg-white/50">
                 <CardTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight text-gray-900">
-                  <CreditCard className="h-5 w-5 text-[#DEAE60]" /> Distribuição de Pagamentos
+                  <CreditCard className="h-5 w-5 text-[#DEAE60]" /> Distribuição Pagamentos
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
@@ -526,7 +524,7 @@ const Relatorios = ({ user }) => {
                 ))}
                 {frequenciaClientes.length === 0 && (
                   <div className="text-center py-12 text-gray-500 font-medium bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                    Nenhum cliente registado no período selecionado.
+                    Nenhum cliente registrado no período selecionado.
                   </div>
                 )}
               </div>

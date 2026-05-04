@@ -13,11 +13,15 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Agenda = ({ user }) => {
+  // LÓGICA DE PERMISSÕES
   const isJhonatas = user?.role === 'jhonatas';
+  const isLucas = user?.role === 'lucas';
+  const isAdmin = !isJhonatas && !isLucas;
 
   // --- DADOS DINÂMICOS DO BACKEND ---
   const [barberOneName, setBarberOneName] = useState('Fabrício');
   const [barberTwoName, setBarberTwoName] = useState('Gabriel');
+  const [barberThreeName, setBarberThreeName] = useState('Lucas');
   
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [targetBarber, setTargetBarber] = useState('barberTwoName'); 
@@ -38,11 +42,13 @@ const Agenda = ({ user }) => {
   
   const [formData, setFormData] = useState({
     cliente_nome: '', cliente_telefone: '', servico: '', data: format(new Date(), 'yyyy-MM-dd'),
-    hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : 'Miguel'
+    hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', 
+    barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel'
   });
 
   const [blockData, setBlockData] = useState({
-    barber: isJhonatas ? 'Jhonatas' : 'Ambos', data_inicio: format(new Date(), 'yyyy-MM-dd'), data_fim: format(new Date(), 'yyyy-MM-dd'), hora_inicio: '12:00', hora_fim: '14:00', intervalo: '30'
+    barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Todos', 
+    data_inicio: format(new Date(), 'yyyy-MM-dd'), data_fim: format(new Date(), 'yyyy-MM-dd'), hora_inicio: '12:00', hora_fim: '14:00', intervalo: '30'
   });
 
   const formasPagamento = ['Pix', 'Dinheiro', 'Cartão de Débito', 'Cartão de Crédito'];
@@ -57,20 +63,15 @@ const Agenda = ({ user }) => {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const resNome1 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`);
-      if (resNome1.ok) {
-        const dataNome1 = await resNome1.json();
-        setBarberOneName(dataNome1.valor || 'Fabrício');
-        localStorage.setItem('barberOneName', dataNome1.valor || 'Fabrício');
-      }
+      const [resNome1, resNome2, resNome3] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
+      ]);
 
-      const resNome2 = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`);
-      if (resNome2.ok) {
-        const dataNome2 = await resNome2.json();
-        setBarberTwoName(dataNome2.valor || 'Gabriel');
-        setTempName(dataNome2.valor || 'Gabriel');
-        localStorage.setItem('barberTwoName', dataNome2.valor || 'Gabriel');
-      }
+      if (resNome1.ok) setBarberOneName((await resNome1.json()).valor || 'Fabrício');
+      if (resNome2.ok) setBarberTwoName((await resNome2.json()).valor || 'Gabriel');
+      if (resNome3.ok) setBarberThreeName((await resNome3.json()).valor || 'Lucas');
 
       const resServicos = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`, { headers });
       if (resServicos.ok) setServicosDb(await resServicos.json());
@@ -79,8 +80,17 @@ const Agenda = ({ user }) => {
       if (resClientes.ok) setClientes(await resClientes.json());
 
       const requests = [];
-      if (!isJhonatas) requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Miguel' }))));
-      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Jhonatas' }))));
+      
+      if (isAdmin) {
+        requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Miguel' }))));
+        requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Jhonatas' }))));
+        requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-lucas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Lucas' }))));
+      } else if (isJhonatas) {
+        requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Jhonatas' }))));
+      } else if (isLucas) {
+        requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-lucas`, { headers }).then(res => res.ok ? res.json() : []).then(data => data.map(a => ({ ...a, barber: 'Lucas' }))));
+      }
+
       const results = await Promise.all(requests);
       setAgendamentos(results.flat());
 
@@ -103,8 +113,8 @@ const Agenda = ({ user }) => {
       if (res.ok) {
         if (targetBarber === 'barberOneName') setBarberOneName(tempName.trim());
         if (targetBarber === 'barberTwoName') setBarberTwoName(tempName.trim());
+        if (targetBarber === 'barberThreeName') setBarberThreeName(tempName.trim());
         
-        localStorage.setItem(targetBarber, tempName.trim());
         setNameDialogOpen(false);
         window.location.reload(); 
       }
@@ -145,7 +155,11 @@ const Agenda = ({ user }) => {
     
     try {
       const token = localStorage.getItem('token');
-      const baseUrl = formData.barber === 'Jhonatas' ? `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas` : `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
+      
+      let baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
+      if (formData.barber === 'Jhonatas') baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`;
+      if (formData.barber === 'Lucas') baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-lucas`;
+      
       const url = editingAgendamento ? `${baseUrl}/${editingAgendamento.id}` : baseUrl;
 
       let precoEmCentavos = null;
@@ -177,6 +191,7 @@ const Agenda = ({ user }) => {
       const slots = [];
       const dIni = new Date(blockData.data_inicio + 'T12:00:00');
       const dFim = new Date(blockData.data_fim + 'T12:00:00');
+      
       for (let d = new Date(dIni); d <= dFim; d.setDate(d.getDate() + 1)) {
         const [hIni, mIni] = blockData.hora_inicio.split(':').map(Number);
         const [hFim, mFim] = blockData.hora_fim.split(':').map(Number);
@@ -191,8 +206,9 @@ const Agenda = ({ user }) => {
       const requests = slots.flatMap(slot => {
         const payload = { cliente_nome: 'Bloqueio de Agenda', cliente_telefone: '', servico: 'Horário Bloqueado', data: slot.data, hora: slot.hora, status: 'Bloqueado', preco: 0, forma_pagamento: '-', observacoes: slot.blockId };
         const reqs = [];
-        if (blockData.barber === 'Miguel' || blockData.barber === 'Ambos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
-        if (blockData.barber === 'Jhonatas' || blockData.barber === 'Ambos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
+        if (blockData.barber === 'Miguel' || blockData.barber === 'Todos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
+        if (blockData.barber === 'Jhonatas' || blockData.barber === 'Todos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
+        if (blockData.barber === 'Lucas' || blockData.barber === 'Todos') reqs.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-lucas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }));
         return reqs;
       });
 
@@ -209,20 +225,24 @@ const Agenda = ({ user }) => {
       if (confirm('Este horário faz parte de um BLOQUEIO EM LOTE.\n[OK] para excluir rotina completa.\n[Cancelar] se quiser excluir APENAS este específico.')) {
         try {
           const itemsToDelete = agendamentos.filter(a => a.observacoes === agendamento.observacoes);
-          await Promise.all(itemsToDelete.map(item => fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${item.barber === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos'}/${item.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })));
+          await Promise.all(itemsToDelete.map(item => {
+            const endpoint = item.barber === 'Jhonatas' ? 'agendamentos-jhonatas' : item.barber === 'Lucas' ? 'agendamentos-lucas' : 'agendamentos';
+            return fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/${item.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+          }));
           return fetchDadosIniciais();
         } catch (error) { return alert('Erro ao remover bloqueio.'); }
       } else if (!confirm('Confirmar liberação APENAS deste horário específico?')) return;
     } else if (!confirm('Deseja excluir este registro?')) return;
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${agendamento.barber === 'Jhonatas' ? 'agendamentos-jhonatas' : 'agendamentos'}/${agendamento.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      const endpoint = agendamento.barber === 'Jhonatas' ? 'agendamentos-jhonatas' : agendamento.barber === 'Lucas' ? 'agendamentos-lucas' : 'agendamentos';
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/${agendamento.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) fetchDadosIniciais();
     } catch (error) { console.error(error); }
   };
 
   const resetForm = () => {
-    setFormData({ cliente_nome: '', cliente_telefone: '', servico: '', data: format(selectedDate || new Date(), 'yyyy-MM-dd'), hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : 'Miguel' });
+    setFormData({ cliente_nome: '', cliente_telefone: '', servico: '', data: format(selectedDate || new Date(), 'yyyy-MM-dd'), hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel' });
     setEditingAgendamento(null); setShowSuggestions(false); 
   };
 
@@ -233,7 +253,7 @@ const Agenda = ({ user }) => {
       const numPreco = Number(agendamento.preco);
       if (!isNaN(numPreco)) safePreco = (numPreco > 0 && numPreco < 500) ? numPreco.toString().replace('.', ',') : (numPreco / 100).toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
-    setFormData({ ...agendamento, preco: safePreco, barber: agendamento?.barber ?? (isJhonatas ? 'Jhonatas' : 'Miguel') });
+    setFormData({ ...agendamento, preco: safePreco, barber: agendamento?.barber ?? (isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel') });
     setDialogOpen(true);
   };
 
@@ -258,15 +278,15 @@ const Agenda = ({ user }) => {
   };
 
   const renderTable = (barbeiroKey) => {
-    const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barberOneName;
+    const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barbeiroKey === 'Lucas' ? barberThreeName : barberOneName;
     
     const filtrados = agendamentos.filter(a => a.barber === barbeiroKey && (!selectedDate || a.data === format(selectedDate, 'yyyy-MM-dd'))).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
-      <Card className="flex-1 bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+      <Card className="flex-1 bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden min-w-[300px]">
         <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
           <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
-            <User className={`h-5 w-5 ${barbeiroKey === 'Jhonatas' ? 'text-neutral-400' : 'text-[#DEAE60]'}`} />
+            <User className={`h-5 w-5 ${barbeiroKey === 'Miguel' ? 'text-[#DEAE60]' : 'text-neutral-400'}`} />
             Agenda: {displayNome}
           </CardTitle>
         </CardHeader>
@@ -360,12 +380,12 @@ const Agenda = ({ user }) => {
             <p className="text-neutral-200 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gerencie os horários da barbearia</p>
           </div>
           
-          {!isJhonatas && (
+          {isAdmin && (
             <Dialog open={nameDialogOpen} onOpenChange={(open) => {
               setNameDialogOpen(open);
               if (open) {
-                 setTargetBarber('barberTwoName');
-                 setTempName(barberTwoName);
+                 setTargetBarber('barberThreeName');
+                 setTempName(barberThreeName);
               }
             }}>
               <DialogTrigger asChild>
@@ -378,13 +398,13 @@ const Agenda = ({ user }) => {
                   <DialogTitle className="text-lg font-bold text-gray-900 uppercase tracking-tighter">Alterar Nome de Exibição</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
-                  <p className="text-xs text-gray-500">O nome escolhido será atualizado em todo o sistema, mas o banco de dados continuará organizando as contas normalmente.</p>
+                  <p className="text-xs text-gray-500">O nome escolhido será atualizado em todo o sistema.</p>
                   
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Qual agenda deseja renomear?</Label>
                     <Select value={targetBarber} onValueChange={(val) => {
                       setTargetBarber(val);
-                      setTempName(val === 'barberOneName' ? barberOneName : barberTwoName);
+                      setTempName(val === 'barberOneName' ? barberOneName : val === 'barberTwoName' ? barberTwoName : barberThreeName);
                     }}>
                       <SelectTrigger className="bg-gray-50 text-gray-900 focus-visible:ring-[#DEAE60]">
                         <SelectValue />
@@ -392,6 +412,7 @@ const Agenda = ({ user }) => {
                       <SelectContent className="bg-white border-gray-200 text-gray-900">
                         <SelectItem value="barberOneName">Agenda 1 ({barberOneName})</SelectItem>
                         <SelectItem value="barberTwoName">Agenda 2 ({barberTwoName})</SelectItem>
+                        <SelectItem value="barberThreeName">Agenda 3 ({barberThreeName})</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -455,7 +476,7 @@ const Agenda = ({ user }) => {
                   <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">Bloquear Horários na Agenda</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleBlockSubmit} className="space-y-4 pt-4">
-                  {!isJhonatas && (
+                  {isAdmin && (
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Agenda(s) a bloquear</Label>
                       <Select value={blockData.barber} onValueChange={(v) => setBlockData({...blockData, barber: v})}>
@@ -463,9 +484,10 @@ const Agenda = ({ user }) => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
-                          <SelectItem value="Ambos">Geral (Ambos)</SelectItem>
+                          <SelectItem value="Todos">Geral (Todas as 3)</SelectItem>
                           <SelectItem value="Miguel">Apenas {barberOneName}</SelectItem>
                           <SelectItem value="Jhonatas">Apenas {barberTwoName}</SelectItem>
+                          <SelectItem value="Lucas">Apenas {barberThreeName}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -519,7 +541,7 @@ const Agenda = ({ user }) => {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                   <div className="grid grid-cols-2 gap-4">
-                    {!isJhonatas && (
+                    {isAdmin && (
                     <div className="space-y-2 col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Barbeiro</Label>
                       <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
@@ -527,6 +549,7 @@ const Agenda = ({ user }) => {
                         <SelectContent className="bg-white border-gray-200 text-gray-900">
                           <SelectItem value="Miguel">{barberOneName}</SelectItem>
                           <SelectItem value="Jhonatas">{barberTwoName}</SelectItem>
+                          <SelectItem value="Lucas">{barberThreeName}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -608,9 +631,11 @@ const Agenda = ({ user }) => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {!isJhonatas && renderTable('Miguel')}
-        {renderTable('Jhonatas')}
+      {/* RENDERIZAÇÃO INTELIGENTE DAS TABELAS COM BASE NO CARGO */}
+      <div className="flex flex-col xl:flex-row gap-6 overflow-x-auto pb-4">
+        {isAdmin && renderTable('Miguel')}
+        {(isAdmin || isJhonatas) && renderTable('Jhonatas')}
+        {(isAdmin || isLucas) && renderTable('Lucas')}
       </div>
     </div>
   );

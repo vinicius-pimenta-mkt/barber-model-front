@@ -3,7 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, DollarSign, Clock, CheckCircle, User } from 'lucide-react';
 
-const DashboardContent = () => {
+const DashboardContent = ({ user }) => {
+  // LÓGICA DE PERMISSÕES
+  const isJhonatas = user?.role === 'jhonatas'; // Gabriel
+  const isLucas = user?.role === 'lucas';       // Lucas
+  const isAdmin = !isJhonatas && !isLucas;      // Fabrício / Admin
+
   const [barberOneName, setBarberOneName] = useState('Fabrício');
   const [barberTwoName, setBarberTwoName] = useState('Gabriel');
   const [barberThreeName, setBarberThreeName] = useState('Lucas');
@@ -18,7 +23,7 @@ const DashboardContent = () => {
     fetchNomes();
     const interval = setInterval(fetchDashboardData, 300000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]); // Atualiza se o usuário mudar
 
   const fetchNomes = async () => {
     try {
@@ -39,9 +44,34 @@ const DashboardContent = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/relatorios/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) setDashboardData(await response.json());
-    } catch (error) { console.error('Erro ao carregar dados:', error); } finally { setLoading(false); }
+      
+      // DIRECIONAMENTO DE ROTA COM BASE NO USUÁRIO LOGADO
+      let endpoint = 'relatorios'; // Padrão (Admin)
+      if (isJhonatas) endpoint = 'relatorios-jhonatas';
+      if (isLucas) endpoint = 'relatorios-lucas';
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}/dashboard`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Garante que a propriedade "barber" exista para que as tabelas consigam filtrar corretamente
+        if (data.agendamentos) {
+          data.agendamentos = data.agendamentos.map(a => ({
+            ...a,
+            barber: a.barber || (isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel')
+          }));
+        }
+        
+        setDashboardData(data);
+      }
+    } catch (error) { 
+      console.error('Erro ao carregar dados:', error); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const formatarHorario = (hora) => hora?.substring(0, 5) || "";
@@ -77,7 +107,9 @@ const DashboardContent = () => {
         <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-12 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
         <div>
           <h1 className="text-3xl font-bold text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Dashboard</h1>
-          <p className="text-neutral-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">Gestão em tempo real - {new Date().toLocaleDateString('pt-BR')}</p>
+          <p className="text-neutral-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">
+            {isAdmin ? 'Gestão Geral' : `Gestão Pessoal - ${user?.username === 'gabriel' ? barberTwoName : barberThreeName}`} | {new Date().toLocaleDateString('pt-BR')}
+          </p>
         </div>
       </div>
 
@@ -96,83 +128,89 @@ const DashboardContent = () => {
         ))}
       </div>
 
-      {/* RENDERIZAÇÃO EMPILHADA (100% LARGURA EM TELA GRANDE) */}
+      {/* RENDERIZAÇÃO EMPILHADA (Oculta ou exibe as agendas de acordo com o usuário) */}
       <div className="flex flex-col gap-6">
         
-        {/* CARD DO FABRÍCIO */}
-        <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
-          <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
-            <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
-              <User className="h-5 w-5 text-[#DEAE60]" /> Próximos: {barberOneName}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-neutral-800">
-              {agendamentosMiguel.length > 0 ? agendamentosMiguel.map((a) => (
-                <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-neutral-950 text-[#DEAE60] rounded-full flex items-center justify-center font-bold border border-[#DEAE60]/30 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
-                    <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+        {/* CARD DO FABRÍCIO (Só aparece se for Admin) */}
+        {isAdmin && (
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+            <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
+              <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
+                <User className="h-5 w-5 text-[#DEAE60]" /> Próximos: {barberOneName}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-neutral-800">
+                {agendamentosMiguel.length > 0 ? agendamentosMiguel.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-neutral-950 text-[#DEAE60] rounded-full flex items-center justify-center font-bold border border-[#DEAE60]/30 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
+                      <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
+                      <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
+                    </div>
                   </div>
-                  <div className="text-right flex flex-col items-end">
-                    <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
-                    <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
-                  </div>
-                </div>
-              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
-            </div>
-          </CardContent>
-        </Card>
+                )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* CARD DO GABRIEL */}
-        <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
-          <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
-            <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
-              <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberTwoName}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-neutral-800">
-              {agendamentosJhonatas.length > 0 ? agendamentosJhonatas.map((a) => (
-                <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
-                    <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+        {/* CARD DO GABRIEL (Aparece se for Admin OU se for o Gabriel logado) */}
+        {(isAdmin || isJhonatas) && (
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+            <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
+              <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
+                <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberTwoName}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-neutral-800">
+                {agendamentosJhonatas.length > 0 ? agendamentosJhonatas.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
+                      <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
+                      <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
+                    </div>
                   </div>
-                  <div className="text-right flex flex-col items-end">
-                    <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
-                    <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
-                  </div>
-                </div>
-              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
-            </div>
-          </CardContent>
-        </Card>
+                )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* CARD DO LUCAS */}
-        <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
-          <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
-            <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
-              <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberThreeName}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-neutral-800">
-              {agendamentosLucas.length > 0 ? agendamentosLucas.map((a) => (
-                <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
-                    <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+        {/* CARD DO LUCAS (Aparece se for Admin OU se for o Lucas logado) */}
+        {(isAdmin || isLucas) && (
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+            <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
+              <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
+                <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberThreeName}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-neutral-800">
+                {agendamentosLucas.length > 0 ? agendamentosLucas.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-neutral-950 text-neutral-300 rounded-full flex items-center justify-center font-bold border border-neutral-700 shadow-inner">{a.cliente_nome?.charAt(0).toUpperCase()}</div>
+                      <div><p className="font-semibold text-neutral-100">{a.cliente_nome}</p><p className="text-xs text-neutral-400">{a.servico}</p></div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
+                      <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
+                    </div>
                   </div>
-                  <div className="text-right flex flex-col items-end">
-                    <p className="font-bold text-white text-lg">{formatarHorario(a.hora)} <span className="text-[10px] text-neutral-500 ml-1 font-normal">({a.data === hojeStr ? 'Hoje' : formatarData(a.data)})</span></p>
-                    <Badge variant="outline" className={`${getStatusColor(a.status)} text-[9px] mt-1 uppercase font-medium`}>{a.status}</Badge>
-                  </div>
-                </div>
-              )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
-            </div>
-          </CardContent>
-        </Card>
+                )) : <div className="p-8 text-center text-neutral-500 text-sm italic">Nenhum agendamento para hoje.</div>}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
     </div>

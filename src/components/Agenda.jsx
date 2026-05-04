@@ -78,7 +78,7 @@ const Agenda = ({ user }) => {
       if (resNome2.ok) {
         const dataNome2 = await resNome2.json();
         const nomeSalvo = dataNome2.valor;
-        // Trava para forçar o nome Gabriel
+        // Trava para forçar o nome Gabriel se vier vazio ou Jhonatas
         const nomeFinal2 = (nomeSalvo === 'Jhonatas' || !nomeSalvo) ? 'Gabriel' : nomeSalvo;
         setBarberTwoName(nomeFinal2);
         setTempName(nomeFinal2);
@@ -179,6 +179,7 @@ const Agenda = ({ user }) => {
     try {
       const token = localStorage.getItem('token');
       
+      // Direcionamento Inteligente da Rota
       let baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos`;
       if (formData.barber === 'Jhonatas') baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-jhonatas`;
       if (formData.barber === 'Lucas') baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agendamentos-lucas`;
@@ -214,6 +215,7 @@ const Agenda = ({ user }) => {
       const slots = [];
       const dIni = new Date(blockData.data_inicio + 'T12:00:00');
       const dFim = new Date(blockData.data_fim + 'T12:00:00');
+      
       for (let d = new Date(dIni); d <= dFim; d.setDate(d.getDate() + 1)) {
         const [hIni, mIni] = blockData.hora_inicio.split(':').map(Number);
         const [hFim, mFim] = blockData.hora_fim.split(':').map(Number);
@@ -300,12 +302,13 @@ const Agenda = ({ user }) => {
   };
 
   const renderTable = (barbeiroKey) => {
+    // Define qual nome mostrar dinamicamente (Miguel/Jhonatas/Lucas interno -> Nome de Exibição)
     const displayNome = barbeiroKey === 'Jhonatas' ? barberTwoName : barbeiroKey === 'Lucas' ? barberThreeName : barberOneName;
     
     const filtrados = agendamentos.filter(a => a.barber === barbeiroKey && (!selectedDate || a.data === format(selectedDate, 'yyyy-MM-dd'))).sort((a, b) => a.hora.localeCompare(b.hora));
 
     return (
-      <Card className="w-full bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+      <Card className="w-full bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden min-w-[300px]">
         <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
           <CardTitle className="flex items-center gap-2 text-lg text-white font-bold uppercase tracking-tight">
             <User className={`h-5 w-5 ${barbeiroKey === 'Miguel' ? 'text-[#DEAE60]' : 'text-neutral-400'}`} />
@@ -394,8 +397,10 @@ const Agenda = ({ user }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pt-8 sm:pt-4">
       
+      {/* CABEÇALHO RESPONSIVO */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
+        {/* TÍTULO E BOTÃO DE CONFIGURAÇÃO DE NOME */}
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Agenda de Atendimentos</h1>
@@ -406,8 +411,8 @@ const Agenda = ({ user }) => {
             <Dialog open={nameDialogOpen} onOpenChange={(open) => {
               setNameDialogOpen(open);
               if (open) {
-                 setTargetBarber('barberTwoName');
-                 setTempName(barberTwoName);
+                 setTargetBarber('barberThreeName');
+                 setTempName(barberThreeName);
               }
             }}>
               <DialogTrigger asChild>
@@ -458,6 +463,7 @@ const Agenda = ({ user }) => {
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {/* Filtro de data */}
           <div className="w-full sm:w-auto">
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
@@ -486,6 +492,7 @@ const Agenda = ({ user }) => {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* DIALOG DE BLOQUEIO */}
             <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="secondary" className="flex-1 sm:flex-none bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700">
@@ -577,6 +584,7 @@ const Agenda = ({ user }) => {
               </DialogContent>
             </Dialog>
 
+            {/* DIALOG DE NOVO/EDITAR AGENDAMENTO */}
             <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if(!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="flex-1 sm:flex-none bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold shadow-lg">
@@ -725,7 +733,7 @@ const Agenda = ({ user }) => {
         </div>
       </div>
 
-      {/* RENDERIZAÇÃO INTELIGENTE DAS TABELAS EMPILHADAS (100% DE LARGURA) */}
+      {/* RENDERIZAÇÃO DAS TABELAS EMPILHADAS */}
       <div className="flex flex-col gap-6 pb-4">
         {isAdmin && renderTable('Miguel')}
         {(isAdmin || isJhonatas) && renderTable('Jhonatas')}

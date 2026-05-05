@@ -23,7 +23,7 @@ const DashboardContent = ({ user }) => {
     fetchNomes();
     const interval = setInterval(fetchDashboardData, 300000);
     return () => clearInterval(interval);
-  }, [user]); // Atualiza se o usuário mudar
+  }, [user]);
 
   const fetchNomes = async () => {
     try {
@@ -44,9 +44,7 @@ const DashboardContent = ({ user }) => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      
-      // DIRECIONAMENTO DE ROTA COM BASE NO USUÁRIO LOGADO
-      let endpoint = 'relatorios'; // Padrão (Admin)
+      let endpoint = 'relatorios';
       if (isJhonatas) endpoint = 'relatorios-jhonatas';
       if (isLucas) endpoint = 'relatorios-lucas';
 
@@ -56,15 +54,12 @@ const DashboardContent = ({ user }) => {
       
       if (response.ok) {
         const data = await response.json();
-        
-        // Garante que a propriedade "barber" exista para que as tabelas consigam filtrar corretamente
         if (data.agendamentos) {
           data.agendamentos = data.agendamentos.map(a => ({
             ...a,
             barber: a.barber || (isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel')
           }));
         }
-        
         setDashboardData(data);
       }
     } catch (error) { 
@@ -104,7 +99,7 @@ const DashboardContent = ({ user }) => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pt-8 sm:pt-4">
       <div className="flex items-center space-x-4 mb-6">
-        <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-21 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+        <img src="/logobranca.png" alt="Barbearia do Mineiro" className="h-12 w-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
         <div>
           <h1 className="text-3xl font-bold text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Dashboard</h1>
           <p className="text-neutral-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mt-1">
@@ -128,12 +123,12 @@ const DashboardContent = ({ user }) => {
         ))}
       </div>
 
-      {/* RENDERIZAÇÃO EMPILHADA (Oculta ou exibe as agendas de acordo com o usuário) */}
-      <div className="flex flex-col gap-6">
+      {/* RENDERIZAÇÃO EM COLUNAS LADO A LADO PARA DESKTOP */}
+      <div className="flex flex-col lg:flex-row lg:items-start gap-6">
         
-        {/* CARD DO FABRÍCIO (Só aparece se for Admin) */}
+        {/* CARD DO FABRÍCIO */}
         {isAdmin && (
-          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden flex-1 w-full">
             <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
               <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
                 <User className="h-5 w-5 text-[#DEAE60]" /> Próximos: {barberOneName}
@@ -158,9 +153,9 @@ const DashboardContent = ({ user }) => {
           </Card>
         )}
 
-        {/* CARD DO GABRIEL (Aparece se for Admin OU se for o Gabriel logado) */}
+        {/* CARD DO GABRIEL */}
         {(isAdmin || isJhonatas) && (
-          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden flex-1 w-full">
             <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
               <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
                 <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberTwoName}
@@ -185,9 +180,9 @@ const DashboardContent = ({ user }) => {
           </Card>
         )}
 
-        {/* CARD DO LUCAS (Aparece se for Admin OU se for o Lucas logado) */}
+        {/* CARD DO LUCAS */}
         {(isAdmin || isLucas) && (
-          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden">
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-md shadow-xl overflow-hidden flex-1 w-full">
             <CardHeader className="border-b border-neutral-800 bg-neutral-900/40">
               <CardTitle className="flex items-center gap-2 text-lg text-white font-semibold uppercase tracking-tight">
                 <User className="h-5 w-5 text-neutral-400" /> Próximos: {barberThreeName}

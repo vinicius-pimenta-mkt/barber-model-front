@@ -500,7 +500,8 @@ const Agenda = ({ user }) => {
                   <span className="text-xs sm:text-sm">Bloquear</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
+              {/* Ajuste de Rolagem Interna e Largura - Mobile First */}
+              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900 w-[95vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">Bloquear Horários na Agenda</DialogTitle>
                 </DialogHeader>
@@ -521,7 +522,8 @@ const Agenda = ({ user }) => {
                       </Select>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Ajuste do grid para alinhar na vertical no celular */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Data de Início</Label>
                       <Input 
@@ -562,7 +564,7 @@ const Agenda = ({ user }) => {
                         className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 col-span-1 sm:col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Gerar bloqueios a cada:</Label>
                       <Select value={blockData.intervalo} onValueChange={(v) => setBlockData({...blockData, intervalo: v})}>
                         <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
@@ -592,14 +594,16 @@ const Agenda = ({ user }) => {
                   <span className="text-xs sm:text-sm">Novo</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900">
+              {/* Ajuste de Rolagem Interna e Largura - Mobile First */}
+              <DialogContent className="sm:max-w-[500px] bg-white border-gray-200 text-gray-900 w-[95vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold uppercase tracking-tight text-gray-900">{editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Ajuste do grid para alinhar na vertical no celular */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {isAdmin && (
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 col-span-1 sm:col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Barbeiro</Label>
                       <Select value={formData.barber} onValueChange={(v) => setFormData({...formData, barber: v})}>
                         <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
@@ -614,7 +618,7 @@ const Agenda = ({ user }) => {
                     </div>
                     )}
                     
-                    <div className="space-y-2 col-span-2 relative">
+                    <div className="space-y-2 col-span-1 sm:col-span-2 relative">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Nome do Cliente</Label>
                       <Input 
                         required 
@@ -645,7 +649,7 @@ const Agenda = ({ user }) => {
                       )}
                     </div>
 
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 col-span-1 sm:col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone do Cliente</Label>
                       <Input 
                         value={formData.cliente_telefone} 
@@ -654,7 +658,7 @@ const Agenda = ({ user }) => {
                         className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 col-span-1 sm:col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Serviço</Label>
                       <Select value={formData.servico} onValueChange={handleServicoChange}>
                         <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">
@@ -705,7 +709,7 @@ const Agenda = ({ user }) => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2 col-span-1 sm:col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Status</Label>
                       <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
                         <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]">

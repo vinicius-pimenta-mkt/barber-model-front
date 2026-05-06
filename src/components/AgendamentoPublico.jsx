@@ -32,15 +32,14 @@ const AgendamentoPublico = () => {
     // Carrega Nome 1 (Fabrício)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`)
       .then(res => res.json())
-      .then(data => setBarberOneName(data.valor || 'Fabrício'))
+      .then(data => setBarberOneName(data?.valor || 'Fabrício'))
       .catch(err => console.error(err));
 
     // Carrega Nome 2 (Gabriel)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       .then(res => res.json())
       .then(data => {
-        // TRAVA DE SEGURANÇA: Força o nome Gabriel se o banco retornar Jhonatas ou vazio
-        const nomeSalvo = data.valor;
+        const nomeSalvo = data?.valor;
         if (nomeSalvo === 'Jhonatas' || !nomeSalvo) {
           setBarberTwoName('Gabriel');
         } else {
@@ -52,13 +51,13 @@ const AgendamentoPublico = () => {
     // Carrega Nome 3 (Lucas)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
       .then(res => res.json())
-      .then(data => setBarberThreeName(data.valor || 'Lucas'))
+      .then(data => setBarberThreeName(data?.valor || 'Lucas'))
       .catch(err => console.error(err));
 
-    // Carrega Serviços
+    // Carrega Serviços com Vacina (Garante que sempre será um Array)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
       .then(res => res.json())
-      .then(data => setServicosDb(data))
+      .then(data => setServicosDb(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
   }, []);
 
@@ -72,7 +71,6 @@ const AgendamentoPublico = () => {
     setLoadingHorarios(true);
     setFormData(prev => ({ ...prev, hora: '' })); 
     try {
-      // Define a rota de acordo com o barbeiro escolhido
       let endpoint = 'agendamentos';
       if (formData.barbeiro === 'Jhonatas') endpoint = 'agendamentos-jhonatas';
       if (formData.barbeiro === 'Lucas') endpoint = 'agendamentos-lucas';
@@ -82,10 +80,14 @@ const AgendamentoPublico = () => {
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        setHorariosLivres(data.livres || []);
+        // Vacina: Garante que horários livres seja sempre um Array
+        setHorariosLivres(Array.isArray(data.livres) ? data.livres : []);
+      } else {
+        setHorariosLivres([]);
       }
     } catch (error) {
       console.error('Erro ao buscar horários:', error);
+      setHorariosLivres([]);
     } finally {
       setLoadingHorarios(false);
     }
@@ -95,7 +97,6 @@ const AgendamentoPublico = () => {
     e.preventDefault();
     setSalvando(true);
     try {
-      // Define a rota de acordo com o barbeiro escolhido
       let endpoint = 'agendamentos';
       if (formData.barbeiro === 'Jhonatas') endpoint = 'agendamentos-jhonatas';
       if (formData.barbeiro === 'Lucas') endpoint = 'agendamentos-lucas';
@@ -139,7 +140,7 @@ const AgendamentoPublico = () => {
         <Card className="max-w-md w-full text-center py-12 shadow-2xl z-10 bg-neutral-900/90 border-neutral-800 backdrop-blur-md">
           <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
           <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Agendamento Confirmado!</h2>
-          <p className="text-neutral-400 mb-6 px-4">Sua vaga está garantida. Te esperamos no dia <strong className="text-white">{formData.data.split('-').reverse().join('/')}</strong> às <strong className="text-white">{formData.hora}</strong>.</p>
+          <p className="text-neutral-400 mb-6 px-4">Sua vaga está garantida. Te esperamos no dia <strong className="text-white">{formData.data ? formData.data.split('-').reverse().join('/') : ''}</strong> às <strong className="text-white">{formData.hora}</strong>.</p>
           <Button onClick={() => window.location.reload()} className="w-full max-w-xs mx-auto bg-[#DEAE60] hover:bg-[#DEAE60]/90 text-neutral-950 font-bold">
             Fazer outro agendamento
           </Button>
@@ -206,10 +207,12 @@ const AgendamentoPublico = () => {
                 <Select required onValueChange={(nomeServico) => {
                   const servicoEncontrado = servicosDb.find(s => s.nome === nomeServico);
                   if(servicoEncontrado) {
+                    // Vacina: Converte o preço com segurança, caso venha como texto ou nulo
+                    const precoNum = Number(servicoEncontrado.preco) || 0;
                     setFormData({...formData, servicoObj: { 
                       nome: servicoEncontrado.nome, 
-                      precoExibicao: servicoEncontrado.preco / 100,
-                      precoEmCentavos: servicoEncontrado.preco
+                      precoExibicao: precoNum / 100,
+                      precoEmCentavos: precoNum
                     }});
                   }
                 }}>
@@ -217,8 +220,8 @@ const AgendamentoPublico = () => {
                     <SelectValue placeholder={servicosDb.length > 0 ? "Selecione o Serviço" : "Carregando serviços..."} />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
-                    {servicosDb.map((s) => (
-                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                    {Array.isArray(servicosDb) && servicosDb.map((s) => (
+                      <SelectItem key={s.id || s.nome} value={s.nome}>{s.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -230,7 +233,8 @@ const AgendamentoPublico = () => {
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                       <Input 
                         readOnly 
-                        value={formData.servicoObj ? formData.servicoObj.precoExibicao.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '0,00'} 
+                        // Vacina: Garante que o valor exibido sempre será um número passível de formatação
+                        value={formData.servicoObj ? Number(formData.servicoObj.precoExibicao || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '0,00'} 
                         className="bg-neutral-950/50 text-white font-black pl-9 border-neutral-800 cursor-not-allowed h-12 focus-visible:ring-[#DEAE60]" 
                       />
                     </div>
@@ -265,9 +269,20 @@ const AgendamentoPublico = () => {
                       <div className="text-xs text-[#DEAE60] animate-pulse font-medium bg-neutral-950 p-3 rounded-lg text-center border border-neutral-800">Buscando horários para este serviço...</div>
                     ) : horariosLivres.length > 0 ? (
                       <div className="grid grid-cols-4 gap-2">
-                        {horariosLivres.map(h => (
-                          <button key={h} type="button" onClick={() => setFormData({...formData, hora: h})} className={`p-2 rounded-lg text-sm font-bold border transition-all ${formData.hora === h ? 'bg-[#DEAE60] text-neutral-950 border-[#DEAE60] shadow-md scale-[1.02]' : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-[#DEAE60]'}`}>{h}</button>
-                        ))}
+                        {Array.isArray(horariosLivres) && horariosLivres.map((h, idx) => {
+                          // Vacina: Garante que botões aceitem apenas textos e nunca quebrem a tela
+                          const horaStr = typeof h === 'string' ? h : (h?.hora || String(h));
+                          return (
+                            <button 
+                              key={idx} 
+                              type="button" 
+                              onClick={() => setFormData({...formData, hora: horaStr})} 
+                              className={`p-2 rounded-lg text-sm font-bold border transition-all ${formData.hora === horaStr ? 'bg-[#DEAE60] text-neutral-950 border-[#DEAE60] shadow-md scale-[1.02]' : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-[#DEAE60]'}`}
+                            >
+                              {horaStr}
+                            </button>
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-xs text-red-400 bg-red-950/30 p-3 rounded-lg border border-red-900/30 text-center font-bold">Nenhum horário livre para este dia.</div>

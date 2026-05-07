@@ -17,7 +17,8 @@ import {
   Trash2, 
   Phone, 
   Mail,
-  Search
+  Search,
+  CalendarDays
 } from 'lucide-react';
 
 const Clientes = ({ user }) => {
@@ -31,7 +32,8 @@ const Clientes = ({ user }) => {
   const [formData, setFormData] = useState({
     nome: '',
     telefone: '',
-    email: ''
+    email: '',
+    data_aniversario: '' // <-- CAMPO DE ANIVERSÁRIO
   });
 
   useEffect(() => {
@@ -112,7 +114,8 @@ const Clientes = ({ user }) => {
     setFormData({
       nome: '',
       telefone: '',
-      email: ''
+      email: '',
+      data_aniversario: ''
     });
     setEditingCliente(null);
   };
@@ -122,7 +125,8 @@ const Clientes = ({ user }) => {
     setFormData({
       nome: cliente.nome,
       telefone: cliente.telefone || '',
-      email: cliente.email || ''
+      email: cliente.email || '',
+      data_aniversario: cliente.data_aniversario || ''
     });
     setDialogOpen(true);
   };
@@ -130,7 +134,8 @@ const Clientes = ({ user }) => {
   const filteredClientes = clientes.filter(cliente =>
     cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cliente.telefone?.includes(searchTerm) ||
-    cliente.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    cliente.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cliente.data_aniversario?.includes(searchTerm)
   );
 
   if (loading) {
@@ -176,15 +181,33 @@ const Clientes = ({ user }) => {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="telefone" className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone</Label>
-                <Input
-                  id="telefone"
-                  value={formData.telefone}
-                  onChange={(e) => setFormData({...formData, telefone: e.target.value})}
-                  placeholder="(00) 00000-0000"
-                  className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="telefone" className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Telefone</Label>
+                  <Input
+                    id="telefone"
+                    value={formData.telefone}
+                    onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                    placeholder="(00) 00000-0000"
+                    className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="aniversario" className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Aniversário</Label>
+                  <Input
+                    id="aniversario"
+                    placeholder="Ex: 25/05"
+                    maxLength={5}
+                    value={formData.data_aniversario}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, ''); 
+                      if (val.length > 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+                      setFormData({...formData, data_aniversario: val});
+                    }}
+                    className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60]"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -218,7 +241,7 @@ const Clientes = ({ user }) => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Pesquisar clientes por nome, telefone ou email..."
+              placeholder="Pesquisar clientes por nome, telefone, email ou aniversário..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-white/60 border-gray-200 text-gray-900 focus-visible:ring-1 focus-visible:ring-[#DEAE60] placeholder:text-gray-400"
@@ -263,6 +286,15 @@ const Clientes = ({ user }) => {
                             <span className="whitespace-nowrap">{cliente.telefone}</span>
                           </div>
                         )}
+                        
+                        {/* NOVO CAMPO: DATA DE ANIVERSÁRIO COM ÍCONE DE CALENDÁRIO */}
+                        {cliente.data_aniversario && (
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600 font-medium">
+                            <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-[#DEAE60]" />
+                            <span className="whitespace-nowrap">{cliente.data_aniversario}</span>
+                          </div>
+                        )}
+
                         {cliente.email && (
                           <div className="flex items-center text-xs sm:text-sm text-gray-600 font-medium break-all">
                             <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-[#DEAE60]" />

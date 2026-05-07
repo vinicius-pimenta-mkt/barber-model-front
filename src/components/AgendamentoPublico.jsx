@@ -19,23 +19,22 @@ const AgendamentoPublico = () => {
   const [servicosDb, setServicosDb] = useState([]);
 
   const [formData, setFormData] = useState({
-    barbeiro: 'Miguel', // Variável interna para a API 1
+    barbeiro: 'Miguel',
     cliente_nome: '',
     cliente_telefone: '',
     servicoObj: null, 
     data: '',
     hora: '',
-    forma_pagamento: 'Dinheiro'
+    forma_pagamento: 'Dinheiro',
+    data_aniversario: '' // <-- NOVO CAMPO AQUI
   });
 
   useEffect(() => {
-    // Carrega Nome 1 (Fabrício)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberOneName`)
       .then(res => res.json())
       .then(data => setBarberOneName(data?.valor || 'Fabrício'))
       .catch(err => console.error(err));
 
-    // Carrega Nome 2 (Gabriel)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberTwoName`)
       .then(res => res.json())
       .then(data => {
@@ -48,13 +47,11 @@ const AgendamentoPublico = () => {
       })
       .catch(err => console.error(err));
 
-    // Carrega Nome 3 (Lucas)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/configuracoes/barberThreeName`)
       .then(res => res.json())
       .then(data => setBarberThreeName(data?.valor || 'Lucas'))
       .catch(err => console.error(err));
 
-    // Carrega Serviços com Vacina (Garante que sempre será um Array)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/servicos`)
       .then(res => res.json())
       .then(data => setServicosDb(Array.isArray(data) ? data : []))
@@ -80,7 +77,6 @@ const AgendamentoPublico = () => {
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        // Vacina: Garante que horários livres seja sempre um Array
         setHorariosLivres(Array.isArray(data.livres) ? data.livres : []);
       } else {
         setHorariosLivres([]);
@@ -109,7 +105,8 @@ const AgendamentoPublico = () => {
         data: formData.data,
         hora: formData.hora,
         forma_pagamento: formData.forma_pagamento,
-        status: 'Pendente' 
+        status: 'Pendente',
+        data_aniversario: formData.data_aniversario // <-- NOVO CAMPO ENVIADO AO BACKEND
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${endpoint}`, {
@@ -168,11 +165,7 @@ const AgendamentoPublico = () => {
         <Card className="max-w-lg w-full shadow-2xl bg-neutral-900/90 border-neutral-800 backdrop-blur-md">
           
           <div className="p-6 text-center border-b border-neutral-800">
-            <img 
-              src="/logobranca.png" 
-              alt="Logo Barbearia do Mineiro" 
-              className="w-32 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" 
-            />
+            <img src="/logobranca.png" alt="Logo Barbearia do Mineiro" className="w-32 h-auto mx-auto mb-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" />
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight flex items-center justify-center gap-2">
               <CalendarDays className="h-6 w-6 text-[#DEAE60]" /> Agende seu Horário
             </h1>
@@ -207,7 +200,6 @@ const AgendamentoPublico = () => {
                 <Select required onValueChange={(nomeServico) => {
                   const servicoEncontrado = servicosDb.find(s => s.nome === nomeServico);
                   if(servicoEncontrado) {
-                    // Vacina: Converte o preço com segurança, caso venha como texto ou nulo
                     const precoNum = Number(servicoEncontrado.preco) || 0;
                     setFormData({...formData, servicoObj: { 
                       nome: servicoEncontrado.nome, 
@@ -233,7 +225,6 @@ const AgendamentoPublico = () => {
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                       <Input 
                         readOnly 
-                        // Vacina: Garante que o valor exibido sempre será um número passível de formatação
                         value={formData.servicoObj ? Number(formData.servicoObj.precoExibicao || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '0,00'} 
                         className="bg-neutral-950/50 text-white font-black pl-9 border-neutral-800 cursor-not-allowed h-12 focus-visible:ring-[#DEAE60]" 
                       />
@@ -270,7 +261,6 @@ const AgendamentoPublico = () => {
                     ) : horariosLivres.length > 0 ? (
                       <div className="grid grid-cols-4 gap-2">
                         {Array.isArray(horariosLivres) && horariosLivres.map((h, idx) => {
-                          // Vacina: Garante que botões aceitem apenas textos e nunca quebrem a tela
                           const horaStr = typeof h === 'string' ? h : (h?.hora || String(h));
                           return (
                             <button 
@@ -295,13 +285,27 @@ const AgendamentoPublico = () => {
                 )}
               </div>
 
+              {/* === SEÇÃO 4 ATUALIZADA COM O CAMPO DE ANIVERSÁRIO === */}
               <div className="space-y-4 pt-4 border-t border-neutral-800">
                 <Label className="text-neutral-300 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                   <User className="h-4 w-4 text-[#DEAE60]"/> 4. Seus Dados
                 </Label>
-                <div className="grid grid-cols-1 gap-4">
-                  <Input required placeholder="Seu Nome Completo" value={formData.cliente_nome} onChange={e => setFormData({...formData, cliente_nome: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <Input required placeholder="Seu Nome Completo" value={formData.cliente_nome} onChange={e => setFormData({...formData, cliente_nome: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]" />
+                  </div>
                   <Input required placeholder="Telefone / WhatsApp" value={formData.cliente_telefone} onChange={e => setFormData({...formData, cliente_telefone: e.target.value})} className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]" />
+                  <Input 
+                    placeholder="Aniversário (Ex: 25/05)" 
+                    maxLength={5} 
+                    value={formData.data_aniversario} 
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, ''); 
+                      if (val.length > 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+                      setFormData({...formData, data_aniversario: val});
+                    }}
+                    className="bg-neutral-950 border-neutral-800 text-white h-12 focus-visible:ring-[#DEAE60]" 
+                  />
                 </div>
               </div>
 

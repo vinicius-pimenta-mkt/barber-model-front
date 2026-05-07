@@ -45,7 +45,8 @@ const Agenda = ({ user }) => {
   const [formData, setFormData] = useState({
     cliente_nome: '', cliente_telefone: '', servico: '', data: format(new Date(), 'yyyy-MM-dd'),
     hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', 
-    barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel'
+    barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel',
+    data_aniversario: '' // <-- CAMPO ADICIONADO AQUI
   });
 
   const [blockData, setBlockData] = useState({
@@ -159,7 +160,7 @@ const Agenda = ({ user }) => {
   };
 
   const handleSelectClient = (cliente) => { 
-    setFormData({ ...formData, cliente_nome: cliente.nome, cliente_telefone: cliente.telefone || '' }); 
+    setFormData({ ...formData, cliente_nome: cliente.nome, cliente_telefone: cliente.telefone || '', data_aniversario: cliente.data_aniversario || '' }); 
     setShowSuggestions(false); 
   };
 
@@ -266,7 +267,7 @@ const Agenda = ({ user }) => {
   };
 
   const resetForm = () => {
-    setFormData({ cliente_nome: '', cliente_telefone: '', servico: '', data: format(selectedDate || new Date(), 'yyyy-MM-dd'), hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel' });
+    setFormData({ cliente_nome: '', cliente_telefone: '', servico: '', data: format(selectedDate || new Date(), 'yyyy-MM-dd'), hora: '', status: 'Pendente', preco: '', forma_pagamento: 'Dinheiro', observacoes: '', barber: isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel', data_aniversario: '' }); // <-- ADICIONADO AQUI
     setEditingAgendamento(null); setShowSuggestions(false); 
   };
 
@@ -277,7 +278,7 @@ const Agenda = ({ user }) => {
       const numPreco = Number(agendamento.preco);
       if (!isNaN(numPreco)) safePreco = (numPreco > 0 && numPreco < 500) ? numPreco.toString().replace('.', ',') : (numPreco / 100).toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
-    setFormData({ ...agendamento, preco: safePreco, barber: agendamento?.barber ?? (isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel') });
+    setFormData({ ...agendamento, preco: safePreco, barber: agendamento?.barber ?? (isJhonatas ? 'Jhonatas' : isLucas ? 'Lucas' : 'Miguel'), data_aniversario: agendamento?.data_aniversario || '' }); // <-- ADICIONADO AQUI PARA PUXAR O ANIVERSÁRIO NA EDIÇÃO SE EXISTIR
     setDialogOpen(true);
   };
 
@@ -658,6 +659,26 @@ const Agenda = ({ user }) => {
                         className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
                       />
                     </div>
+
+                    {/* ======================================================== */}
+                    {/* CAMPO DE ANIVERSÁRIO ADICIONADO AQUI                     */}
+                    {/* ======================================================== */}
+                    <div className="space-y-2 col-span-1 sm:col-span-2">
+                      <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Aniversário (Dia/Mês)</Label>
+                      <Input 
+                        placeholder="Ex: 25/05 (Opcional)" 
+                        maxLength={5} 
+                        value={formData.data_aniversario || ''} 
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/\D/g, ''); 
+                          if (val.length > 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+                          setFormData({...formData, data_aniversario: val});
+                        }}
+                        className="bg-gray-50 border-gray-200 text-gray-900 focus-visible:ring-[#DEAE60]"
+                      />
+                    </div>
+                    {/* ======================================================== */}
+
                     <div className="space-y-2 col-span-1 sm:col-span-2">
                       <Label className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Serviço</Label>
                       <Select value={formData.servico} onValueChange={handleServicoChange}>
